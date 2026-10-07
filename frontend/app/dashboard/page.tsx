@@ -252,6 +252,11 @@ export default function DashboardPage() {
                         <p className="text-[11px] text-muted-foreground truncate">
                           {opp.company} • {opp.location}
                         </p>
+                        {opp.salary_range && (
+                          <p className="text-[10px] font-semibold text-emerald-400 mt-0.5 truncate">
+                            {opp.salary_range}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">

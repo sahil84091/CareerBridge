@@ -2,6 +2,10 @@
 
 CareerBridge is a career intelligence app with a FastAPI backend and Next.js frontend. The API uses Google OIDC sessions, PostgreSQL, private resume object storage, Gemini for structured resume extraction and personalized roadmaps, and Adzuna for India job search.
 
+## Quick Start (Windows)
+
+Double-click `start.bat` in the project root (or run `.\start.bat` in PowerShell/CMD) to launch both the FastAPI backend and Next.js frontend automatically. To cleanly stop both services anytime, double-click `stop.bat`.
+
 ## Local development
 
 1. Copy `.env.example` to `.env` and set Google OAuth, Gemini, and Adzuna credentials. Configure the Google OAuth client callback as `http://localhost:8000/api/auth/google/callback`.

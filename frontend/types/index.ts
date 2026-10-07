@@ -22,7 +22,57 @@ export interface Profile {
   education_level?: string;
   github_url?: string;
   linkedin_url?: string;
+  github_data?: {
+    username?: string;
+    profile_url?: string;
+    name?: string;
+    bio?: string;
+    avatar_url?: string;
+    public_repos?: number;
+    followers?: number;
+    languages?: string[];
+    topics?: string[];
+    top_repositories?: Array<{
+      name: string;
+      description?: string;
+      stars: number;
+      forks: number;
+      language?: string;
+      topics?: string[];
+      url: string;
+    }>;
+    detected_skills?: string[];
+    synced_at?: string;
+  } | null;
+  linkedin_data?: {
+    handle?: string;
+    profile_url?: string;
+    headline?: string;
+    summary?: string;
+    avatar_url?: string;
+    detected_skills?: string[];
+    synced_at?: string;
+  } | null;
 }
+
+export interface ResumeProjectSuggestion {
+  title: string;
+  description: string;
+  target_skills: string[];
+  impact_bullet_points: string[];
+  source_origin: string;
+  recommended_action: string;
+}
+
+export interface ProfileEnhancementResponse {
+  synced_github: boolean;
+  synced_linkedin: boolean;
+  detected_skills: string[];
+  project_suggestions: ResumeProjectSuggestion[];
+  resume_enhancements: string[];
+  personalized_roles: string[];
+}
+
 
 export interface SkillItem {
   id: string;
@@ -59,6 +109,37 @@ export interface CareerRole {
   required_skills: RoleSkillItem[];
 }
 
+export interface ResumeCertification {
+  name: string;
+  issuer?: string | null;
+  year?: string | null;
+  credibility_score?: number;
+  priority_level?: "High" | "Medium" | "Low" | "Unverified" | string;
+  is_legitimate?: boolean;
+  skills_validated?: string[];
+  reputation_notes?: string | null;
+}
+
+export interface CuratedResource {
+  title: string;
+  platform: string;
+  url: string;
+  duration?: string | null;
+  type?: "video" | "course" | "documentation" | "project";
+  skill: string;
+  description?: string | null;
+}
+
+export interface StructuredPlanStep {
+  step_number: number;
+  phase_name: string;
+  title: string;
+  focus_skills: string[];
+  action_items: string[];
+  estimated_weeks: string;
+  recommended_video?: CuratedResource | null;
+}
+
 export interface SkillGapItem {
   name: string;
   category: string;
@@ -79,6 +160,9 @@ export interface SkillGapAnalysis {
   matched_count: number;
   partial_count: number;
   missing_count: number;
+  certifications_summary?: ResumeCertification[];
+  curated_resources?: CuratedResource[];
+  structured_plan?: StructuredPlanStep[];
 }
 
 export interface RoadmapPhase {
@@ -92,6 +176,7 @@ export interface RoadmapPhase {
   learning_goals: string[];
   completed_goals: string[];
   status: "completed" | "in_progress" | "pending";
+  curated_videos?: CuratedResource[];
 }
 
 export interface Roadmap {
@@ -118,6 +203,7 @@ export interface Opportunity {
   match_score: number;
   matched_skills: string[];
   missing_skills: string[];
+  source?: string;
 }
 
 export interface DashboardData {
@@ -150,7 +236,7 @@ export interface ResumeParseOutput {
   experience: Record<string, unknown>[];
   skills: ParsedSkill[];
   projects: Record<string, unknown>[];
-  certifications: string[];
+  certifications: (string | ResumeCertification)[];
 }
 
 export interface ResumeAnalysis {

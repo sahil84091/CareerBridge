@@ -44,13 +44,17 @@ class GeminiService:
             response = self._client().models.generate_content(
                 model=self.settings.gemini_model,
                 contents=(
-                    "Extract only facts explicitly present in this resume. Use empty arrays or null for absent data. "
-                    "Do not invent employers, dates, schools, projects, certifications, or skills.\n\n" + text[:100_000]
+                    "Extract only facts explicitly present in this resume. "
+                    "Extract candidate name, email, education, experience, projects, skills, and certifications. "
+                    "For certifications, accurately extract the certification name, issuer organization, year (if specified), "
+                    "and skills validated by that certification. "
+                    "Do not invent facts not present in the text.\n\n" + text[:100_000]
                 ),
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=ResumeParseOutput,
                     temperature=0.1,
+                    automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
                 ),
             )
             return ResumeParseOutput.model_validate_json(response.text).model_dump()
@@ -75,6 +79,7 @@ class GeminiService:
                     response_mime_type="application/json",
                     response_schema=GeneratedRoadmap,
                     temperature=0.35,
+                    automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
                 ),
             )
             result = GeneratedRoadmap.model_validate_json(response.text)
@@ -82,8 +87,54 @@ class GeminiService:
                 raise ValueError("Gemini returned an invalid roadmap phase sequence")
             return [phase.model_dump() for phase in sorted(result.phases, key=lambda item: item.phase_number)]
         except Exception:
-            logger.exception("Gemini roadmap generation failed; using deterministic generator")
+            logger.exception("Gemini roadmap generation failed; using deterministic fallback")
+            return None
+
+    def generate_profile_enhancements(
+        self,
+        candidate_name: str,
+        target_role: str,
+        recorded_skills: list[str],
+        github_data: dict[str, Any] | None = None,
+        linkedin_data: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        """
+        Uses Gemini to generate tailored project ideas to build, high-impact resume bullet points,
+        and targeted role recommendations based on connected GitHub & LinkedIn activity.
+        """
+        if not self.configured:
+            return None
+        try:
+            from google.genai import types
+
+            prompt = (
+                f"You are a principal tech career strategist. Analyze candidate '{candidate_name}' pursuing '{target_role}'.\n"
+                f"Current recorded skills: {recorded_skills}\n"
+                f"GitHub connected data: {github_data}\n"
+                f"LinkedIn connected data: {linkedin_data}\n\n"
+                "Provide:\n"
+                "1. 3 highly specific portfolio project suggestions that bridge skill gaps for the target role.\n"
+                "2. 4 quantifiable, recruiter-optimized resume accomplishment bullet points incorporating their GitHub/LinkedIn stack.\n"
+                "3. 3 specialized high-fit job titles to explore based on their unique combined tech footprint.\n"
+                "Return strictly valid JSON with keys: 'project_suggestions' (list of {title, description, target_skills, impact_bullet_points, source_origin, recommended_action}), "
+                "'resume_enhancements' (list of strings), 'personalized_roles' (list of strings)."
+            )
+
+            response = self._client().models.generate_content(
+                model=self.settings.gemini_model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.3,
+                    automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+                ),
+            )
+            import json
+            return json.loads(response.text)
+        except Exception:
+            logger.exception("Gemini profile enhancement generation failed; using fallback")
             return None
 
 
 gemini_service = GeminiService()
+

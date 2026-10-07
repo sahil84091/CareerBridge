@@ -93,6 +93,34 @@ async def upload_resume(
                 verified=False,
                 source="Resume extraction",
             ))
+
+    # Process skills validated by legitimate certifications
+    for cert in parsed.certifications:
+        if getattr(cert, "credibility_score", 0) >= 70 and getattr(cert, "skills_validated", None):
+            for v_skill in cert.skills_validated:
+                canonical = taxonomy.normalize(v_skill) or v_skill.strip()
+                if not canonical:
+                    continue
+                if canonical not in extracted_canonical:
+                    extracted_canonical.append(canonical)
+                skill = db.query(Skill).filter(Skill.name.ilike(canonical)).first()
+                if not skill:
+                    skill = Skill(name=canonical, category="Technical", importance="High")
+                    db.add(skill)
+                    db.flush()
+                u_skill = db.query(UserSkill).filter(UserSkill.user_id == user.id, UserSkill.skill_id == skill.id).first()
+                if u_skill:
+                    u_skill.verified = True
+                    u_skill.proficiency = "Strong"
+                    u_skill.source = f"Certification: {cert.name}"
+                else:
+                    db.add(UserSkill(
+                        user_id=user.id,
+                        skill_id=skill.id,
+                        proficiency="Strong",
+                        verified=True,
+                        source=f"Certification: {cert.name}",
+                    ))
     db.commit()
     db.refresh(resume_record)
     return ResumeAnalysisResponse(

@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+import json
 import logging
+import os
 
 import httpx
 from fastapi import HTTPException
@@ -13,14 +15,46 @@ from backend.app.ai.opportunity_matcher import opportunity_matcher
 logger = logging.getLogger(__name__)
 
 
-def _salary(minimum, maximum):
+def _format_inr_amount(amount: float | int) -> str:
+    amt = int(amount)
+    if amt >= 100000:
+        lakhs = amt / 100000
+        if lakhs.is_integer():
+            return f"₹{int(lakhs)} Lakh"
+        return f"₹{lakhs:.1f} Lakh"
+    elif amt >= 1000:
+        return f"₹{amt:,}"
+    return f"₹{amt}"
+
+
+def _salary(minimum, maximum, title: str = "", contract_type: str = ""):
     if minimum and maximum:
-        return f"{int(minimum):,}–{int(maximum):,}"
+        return f"{_format_inr_amount(minimum)} - {_format_inr_amount(maximum)} / year"
     if minimum:
-        return f"From {int(minimum):,}"
+        return f"From {_format_inr_amount(minimum)} / year"
     if maximum:
-        return f"Up to {int(maximum):,}"
-    return None
+        return f"Up to {_format_inr_amount(maximum)} / year"
+
+    # Intelligent market benchmark based on job title and contract type
+    t_lower = (title or "").lower()
+    c_lower = (contract_type or "").lower()
+
+    if "intern" in t_lower or "intern" in c_lower:
+        return "₹30,000 - ₹50,000 / month (Est.)"
+    elif "lead" in t_lower or "principal" in t_lower or "architect" in t_lower or "manager" in t_lower:
+        return "₹28 - ₹45 Lakh / year (Est.)"
+    elif "senior" in t_lower or "sr" in t_lower:
+        return "₹20 - ₹32 Lakh / year (Est.)"
+    elif "ai" in t_lower or "machine learning" in t_lower or "data science" in t_lower:
+        return "₹18 - ₹28 Lakh / year (Est.)"
+    elif "full stack" in t_lower or "backend" in t_lower or "cloud" in t_lower or "devops" in t_lower:
+        return "₹14 - ₹24 Lakh / year (Est.)"
+    elif "frontend" in t_lower or "react" in t_lower or "web" in t_lower:
+        return "₹10 - ₹18 Lakh / year (Est.)"
+    elif "junior" in t_lower or "entry" in t_lower or "associate" in t_lower:
+        return "₹8 - ₹14 Lakh / year (Est.)"
+    else:
+        return "₹12 - ₹20 Lakh / year (Est.)"
 
 
 def _cached(db: Session, country: str, max_age: timedelta) -> list[Opportunity]:
@@ -76,9 +110,30 @@ def _fetch_and_cache(db: Session, role_filter: str | None, location: str | None,
             Opportunity.source == source, Opportunity.external_id == external_id
         ).first()
         description = row.get("description") or ""
-        extracted = resume_parser._extract_skills(description)
-        required_skills = [item["name"] for item in extracted]
         title = row.get("title") or "Opportunity"
+        full_text = f"{title} {description}"
+        extracted = resume_parser._extract_skills(full_text)
+        required_skills = [item["name"] for item in extracted]
+
+        # If snippet was short or didn't explicitly list skills, infer industry-standard requirements from title
+        if not required_skills:
+            t_l = title.lower()
+            if "intern" in t_l:
+                required_skills = ["Data Structures & Algorithms", "Git", "Problem Solving"]
+            elif "frontend" in t_l or "react" in t_l or "ui" in t_l:
+                required_skills = ["JavaScript", "React", "HTML", "CSS", "Git"]
+            elif "backend" in t_l or "python" in t_l or "fastapi" in t_l:
+                required_skills = ["Python", "SQL", "REST API", "Git"]
+            elif "full stack" in t_l or "fullstack" in t_l:
+                required_skills = ["JavaScript", "React", "Node.js", "SQL", "Git"]
+            elif "ai" in t_l or "machine learning" in t_l or "data science" in t_l:
+                required_skills = ["Python", "Machine Learning", "SQL", "Git"]
+            elif "cloud" in t_l or "devops" in t_l:
+                required_skills = ["Docker", "Linux", "AWS", "Git"]
+            elif "data" in t_l:
+                required_skills = ["SQL", "Python", "Data Structures & Algorithms"]
+            else:
+                required_skills = ["Data Structures & Algorithms", "Git", "SQL", "Problem Solving"]
         category = row.get("category") or {}
         contract_time = (row.get("contract_time") or "").lower()
         contract_kind = (row.get("contract_type") or "").lower()
@@ -104,7 +159,7 @@ def _fetch_and_cache(db: Session, role_filter: str | None, location: str | None,
             "company": (row.get("company") or {}).get("display_name") or "Unknown company",
             "location": (row.get("location") or {}).get("display_name") or "India",
             "type": contract,
-            "salary_range": _salary(row.get("salary_min"), row.get("salary_max")),
+            "salary_range": _salary(row.get("salary_min"), row.get("salary_max"), title=title, contract_type=contract),
             "experience_level": "Not specified",
             "description": description,
             "apply_url": row.get("redirect_url"),
@@ -128,6 +183,18 @@ def _fetch_and_cache(db: Session, role_filter: str | None, location: str | None,
     return result
 
 
+def _load_fallback_opportunities(db: Session) -> list[Opportunity]:
+    """Loads curated opportunities from db, seeding if empty."""
+    opps = db.query(Opportunity).all()
+    if not opps:
+        try:
+            from backend.app.database.seed import seed_opportunities_into
+            opps = seed_opportunities_into(db)
+        except Exception as e:
+            logger.warning("Failed to seed fallback opportunities: %s", e)
+    return opps
+
+
 def matched_opportunities(
     db: Session,
     user: User,
@@ -140,23 +207,65 @@ def matched_opportunities(
     country = settings.adzuna_country
     preference = user.preferences
     cached_fresh = _cached(db, country, timedelta(minutes=15))
-    try:
-        if refresh or not cached_fresh:
-            opportunities = _fetch_and_cache(db, role_filter, location, type_filter, bool(preference and preference.remote_only))
-        else:
-            opportunities = cached_fresh
-    except HTTPException:
+    opportunities = []
+
+    # If live Adzuna credentials are set, attempt live fetch
+    if settings.adzuna_app_id and settings.adzuna_app_key:
+        try:
+            if refresh or not cached_fresh:
+                opportunities = _fetch_and_cache(
+                    db,
+                    role_filter,
+                    location,
+                    type_filter,
+                    bool(preference and preference.remote_only),
+                )
+            else:
+                opportunities = cached_fresh
+        except Exception as exc:
+            logger.warning("Live Adzuna fetch failed, falling back to cached/curated: %s", exc)
+            opportunities = _cached(db, country, timedelta(days=7))
+
+    # If no live results or Adzuna not configured, try recent cached Adzuna
+    if not opportunities:
         opportunities = _cached(db, country, timedelta(days=7))
-        if not opportunities:
-            raise
+
+    # If still no opportunities (e.g. Adzuna unconfigured or empty), load curated opportunities
+    if not opportunities:
+        opportunities = _load_fallback_opportunities(db)
+
+    # Filter by type
     if type_filter and type_filter.lower() != "all":
-        opportunities = [o for o in opportunities if type_filter.lower() in (o.type or "").lower()]
+        tf = type_filter.lower()
+        if "intern" in tf:
+            opportunities = [
+                o for o in opportunities
+                if "intern" in (o.type or "").lower() or "intern" in (o.title or "").lower()
+            ]
+        elif "full" in tf:
+            opportunities = [o for o in opportunities if "full" in (o.type or "").lower()]
+        elif "part" in tf:
+            opportunities = [o for o in opportunities if "part" in (o.type or "").lower()]
+        elif "contract" in tf:
+            opportunities = [o for o in opportunities if "contract" in (o.type or "").lower()]
+        else:
+            opportunities = [o for o in opportunities if tf in (o.type or "").lower()]
+
+    # Filter by role
     if role_filter:
         needle = role_filter.casefold()
-        opportunities = [o for o in opportunities if needle in o.title.casefold() or needle in o.description.casefold()]
+        opportunities = [
+            o for o in opportunities
+            if needle in o.title.casefold()
+            or needle in o.description.casefold()
+            or any(needle in s.casefold() for s in (o.required_skills or []))
+        ]
+
+    # Filter by location
     if location:
         needle = location.casefold()
         opportunities = [o for o in opportunities if needle in o.location.casefold()]
+
     user_skills = [s.skill.name for s in db.query(UserSkill).filter(UserSkill.user_id == user.id).all()]
     output = []
     for opportunity in opportunities:
@@ -172,6 +281,7 @@ def matched_opportunities(
             "apply_url": opportunity.apply_url,
             "required_skills": opportunity.required_skills or [],
             "preferred_skills": opportunity.preferred_skills or [],
+            "source": opportunity.source or "Adzuna",
         }))
     return sorted(output, key=lambda item: -item["match_score"])
 
@@ -180,6 +290,8 @@ def cached_matched_opportunities(db: Session, user: User, limit: int = 4):
     settings = get_settings()
     opportunities = _cached(db, settings.adzuna_country, timedelta(days=7))
     if not opportunities:
+        opportunities = _load_fallback_opportunities(db)
+    if not opportunities:
         return []
     skills = [s.skill.name for s in db.query(UserSkill).filter(UserSkill.user_id == user.id).all()]
     results = [opportunity_matcher.match_opportunity(skills, {
@@ -187,5 +299,6 @@ def cached_matched_opportunities(db: Session, user: User, limit: int = 4):
         "type": item.type, "salary_range": item.salary_range, "experience_level": item.experience_level,
         "description": item.description, "apply_url": item.apply_url,
         "required_skills": item.required_skills or [], "preferred_skills": item.preferred_skills or [],
+        "source": item.source or "Adzuna",
     }) for item in opportunities]
     return sorted(results, key=lambda item: -item["match_score"])[:limit]

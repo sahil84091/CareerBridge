@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # Auth Schemas
@@ -39,6 +39,8 @@ class ProfileResponse(BaseModel):
     education_level: Optional[str] = None
     github_url: Optional[str] = None
     linkedin_url: Optional[str] = None
+    github_data: Optional[Dict[str, Any]] = None
+    linkedin_data: Optional[Dict[str, Any]] = None
 
 
 class ProfileUpdateRequest(BaseModel):
@@ -50,6 +52,35 @@ class ProfileUpdateRequest(BaseModel):
     education_level: Optional[str] = None
     github_url: Optional[str] = None
     linkedin_url: Optional[str] = None
+
+
+class LinkGitHubRequest(BaseModel):
+    github_url: str
+
+
+class LinkLinkedInRequest(BaseModel):
+    linkedin_url: str
+    headline: Optional[str] = None
+    summary: Optional[str] = None
+    skills_text: Optional[str] = None
+
+
+class ResumeProjectSuggestion(BaseModel):
+    title: str
+    description: str
+    target_skills: List[str]
+    impact_bullet_points: List[str]
+    source_origin: str  # e.g. "GitHub Repository", "Industry Gap", "LinkedIn Experience"
+    recommended_action: str  # "Add to Resume", "Highlight in Portfolio", etc.
+
+
+class ProfileEnhancementResponse(BaseModel):
+    synced_github: bool = False
+    synced_linkedin: bool = False
+    detected_skills: List[str] = []
+    project_suggestions: List[ResumeProjectSuggestion] = []
+    resume_enhancements: List[str] = []
+    personalized_roles: List[str] = []
 
 
 class UserPreferenceResponse(BaseModel):
@@ -114,6 +145,17 @@ class ResumeProject(BaseModel):
     technologies: List[str] = Field(default_factory=list)
 
 
+class ResumeCertification(BaseModel):
+    name: str
+    issuer: Optional[str] = "Independent Issuer"
+    year: Optional[str] = None
+    credibility_score: int = Field(default=50, ge=0, le=100)
+    priority_level: Literal["High", "Medium", "Low", "Unverified"] = "Medium"
+    is_legitimate: bool = True
+    skills_validated: List[str] = Field(default_factory=list)
+    reputation_notes: Optional[str] = None
+
+
 class ResumeParseOutput(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
@@ -121,7 +163,21 @@ class ResumeParseOutput(BaseModel):
     experience: List[ResumeExperience] = Field(default_factory=list)
     skills: List[ParsedResumeSkill] = Field(default_factory=list)
     projects: List[ResumeProject] = Field(default_factory=list)
-    certifications: List[str] = Field(default_factory=list)
+    certifications: List[ResumeCertification] = Field(default_factory=list)
+
+    @field_validator("certifications", mode="before")
+    @classmethod
+    def normalize_certifications(cls, v: Any) -> List[Any]:
+        if not v:
+            return []
+        from backend.app.ai.certification_evaluator import certification_evaluator
+        result = []
+        for item in v:
+            if isinstance(item, (str, dict)):
+                result.append(certification_evaluator.evaluate(item))
+            else:
+                result.append(item)
+        return result
 
 
 class ResumeAnalysisResponse(BaseModel):
@@ -150,7 +206,27 @@ class CareerRoleResponse(BaseModel):
     required_skills: List[RoleSkillItem] = Field(default_factory=list)
 
 
-# Skill Gap Schemas
+# Skill Gap & Learning Resource Schemas
+class CuratedResource(BaseModel):
+    title: str
+    platform: str
+    url: str
+    duration: Optional[str] = None
+    type: Literal["video", "course", "documentation", "project"] = "video"
+    skill: str
+    description: Optional[str] = None
+
+
+class StructuredPlanStep(BaseModel):
+    step_number: int
+    phase_name: str
+    title: str
+    focus_skills: List[str]
+    action_items: List[str]
+    estimated_weeks: str
+    recommended_video: Optional[CuratedResource] = None
+
+
 class SkillGapItem(BaseModel):
     name: str
     category: str
@@ -175,6 +251,9 @@ class SkillGapAnalysisResponse(BaseModel):
     matched_count: int
     partial_count: int
     missing_count: int
+    certifications_summary: List[ResumeCertification] = Field(default_factory=list)
+    curated_resources: List[CuratedResource] = Field(default_factory=list)
+    structured_plan: List[StructuredPlanStep] = Field(default_factory=list)
 
 
 # Roadmap Schemas
@@ -189,6 +268,7 @@ class RoadmapPhaseItem(BaseModel):
     learning_goals: List[str]
     completed_goals: List[str] = Field(default_factory=list)
     status: str = "pending"
+    curated_videos: List[CuratedResource] = Field(default_factory=list)
 
 
 class RoadmapResponse(BaseModel):
@@ -216,6 +296,7 @@ class OpportunityMatchItem(BaseModel):
     match_score: float
     matched_skills: List[str]
     missing_skills: List[str]
+    source: str = "Adzuna"
 
 
 # Dashboard Schemas

@@ -1,5 +1,7 @@
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from backend.app.ai.taxonomy import taxonomy
+from backend.app.ai.certification_evaluator import certification_evaluator
+from backend.app.ai.learning_resources import get_curated_resources_for_skills, build_structured_plan
 
 
 class SkillGapEngine:
@@ -8,6 +10,7 @@ class SkillGapEngine:
         user_skills: List[Dict[str, Any]],  # list of {name, proficiency}
         role_skills: List[Dict[str, Any]],  # list of {skill_name, importance, weight}
         role_title: str,
+        certifications: Optional[List[Any]] = None,
     ) -> Dict[str, Any]:
         """
         Calculates:
@@ -15,7 +18,10 @@ class SkillGapEngine:
         - partial_skills: User has moderate or familiar proficiency, needs improvement
         - missing_skills: User does not possess required skill
         - priority_skills: Top 3-5 critical missing/partial skills
-        - readiness_score: 0 to 100 percentage
+        - readiness_score: 0 to 100 percentage incorporating skill matches and verified credential bonuses
+        - certifications_summary: Evaluated certification credentials with credibility scores
+        - curated_resources: Curated video and project learning materials
+        - structured_plan: Multi-step guided learning sprints
         """
         # Build normalized user skills map
         user_skill_map = {}
@@ -23,6 +29,25 @@ class SkillGapEngine:
             norm_name = taxonomy.normalize(s.get("name", s.get("skill_name", "")))
             if norm_name:
                 user_skill_map[norm_name.lower()] = s.get("proficiency", "Moderate")
+
+        # Evaluate and summarize certifications
+        evaluated_certs = []
+        credential_bonus = 0.0
+        if certifications:
+            for c in certifications:
+                eval_c = certification_evaluator.evaluate(c)
+                evaluated_certs.append(eval_c)
+                # Tier scoring impact: High credibility awards higher readiness bonus
+                score = eval_c.get("credibility_score", 0)
+                if score >= 85:
+                    credential_bonus += 4.5  # Legit recognized industry credential
+                elif score >= 60:
+                    credential_bonus += 2.0  # Recognized practical coursework
+                else:
+                    credential_bonus += 0.2  # Unverified or attendance certificate
+
+        # Cap total credential bonus to 12.0%
+        credential_bonus = min(credential_bonus, 12.0)
 
         matched = []
         partial = []
@@ -79,10 +104,11 @@ class SkillGapEngine:
                     "weight": weight,
                 })
 
-        # Calculate readiness score percentage
-        readiness_score = (
-            round((earned_weight / total_weight) * 100, 1) if total_weight > 0 else 0.0
+        # Calculate base readiness score percentage
+        base_readiness = (
+            (earned_weight / total_weight) * 100.0 if total_weight > 0 else 0.0
         )
+        readiness_score = round(base_readiness + credential_bonus, 1)
         readiness_score = min(max(readiness_score, 0.0), 100.0)
 
         # Priority skills: sort missing skills by weight/importance (Core first), then partial skills
@@ -100,6 +126,10 @@ class SkillGapEngine:
         ]
         priority_skills = priority_candidates[:5]
 
+        # Generate curated video resources and structured learning sprints
+        curated_resources = get_curated_resources_for_skills(priority_skills)
+        structured_plan = build_structured_plan(priority_skills, role_title)
+
         return {
             "readiness_score": readiness_score,
             "matched_skills": matched,
@@ -110,7 +140,11 @@ class SkillGapEngine:
             "matched_count": len(matched),
             "partial_count": len(partial),
             "missing_count": len(missing),
+            "certifications_summary": evaluated_certs,
+            "curated_resources": curated_resources,
+            "structured_plan": structured_plan,
         }
 
 
 skill_gap_engine = SkillGapEngine()
+

@@ -70,7 +70,7 @@ class ResumeParserService:
 
     def _extract_skills(self, text: str) -> List[Dict[str, Any]]:
         found_skills = {}
-        lower_text = " " + text.lower() + " "
+        lower_text = text.lower()
 
         # Check all known taxonomy canonical skills & aliases
         for item in taxonomy.get_all_canonical_skills():
@@ -78,8 +78,14 @@ class ResumeParserService:
             aliases = [canonical_name.lower()] + [a.lower() for a in item.get("aliases", [])]
 
             for alias in aliases:
-                # Word boundary check or token match
-                pattern = r"(?:\b|\s|\W)" + re.escape(alias) + r"(?:\b|\s|\W)"
+                # Custom boundary matching for special symbols (#, +, etc.)
+                if alias in {"c", "r"}:
+                    pattern = r"(?<![a-zA-Z0-9_])" + re.escape(alias) + r"(?![a-zA-Z0-9_#+])"
+                elif "#" in alias or "+" in alias or "." in alias:
+                    pattern = r"(?<![a-zA-Z0-9_])" + re.escape(alias) + r"(?![a-zA-Z0-9_])"
+                else:
+                    pattern = r"\b" + re.escape(alias) + r"\b"
+
                 if re.search(pattern, lower_text):
                     if canonical_name not in found_skills:
                         found_skills[canonical_name] = {
@@ -137,22 +143,48 @@ class ResumeParserService:
                 result.append({"degree": line, "institution": None, "graduation_year": year.group(0) if year else None})
         return result
 
-    def _extract_certifications(self, text: str) -> List[str]:
-        certs = []
+    def _extract_certifications(self, text: str) -> List[Dict[str, Any]]:
+        from backend.app.ai.certification_evaluator import certification_evaluator
+        raw_certs = []
         in_section = False
-        headings = {"certification", "certifications", "licenses", "licences"}
-        other_sections = {"education", "experience", "projects", "skills", "summary", "profile"}
+        headings = {"certification", "certifications", "licenses", "licences", "certificates", "credentials"}
+        other_sections = {"education", "experience", "projects", "skills", "summary", "profile", "work history"}
+        
+        # 1. Section-based extraction
         for line in text.splitlines():
-            value = line.strip(" •-\t")
+            value = line.strip(" •-\t*#")
             normalized = value.lower().rstrip(":")
             if normalized in headings:
                 in_section = True
                 continue
-            if normalized in other_sections:
+            if in_section and normalized in other_sections:
                 in_section = False
-            elif in_section and value:
-                certs.append(value)
-        return certs
+            elif in_section and value and len(value) > 3:
+                raw_certs.append(value)
+
+        # 2. Inline pattern scanning for prominent certifications if none found in dedicated section
+        if not raw_certs:
+            known_cert_patterns = [
+                r"(?:aws|amazon)\s+(?:certified\s+)?[\w\s\-]+(?:associate|professional|specialty|practitioner)?",
+                r"(?:google\s+cloud|gcp)\s+(?:certified\s+)?[\w\s\-]+",
+                r"(?:microsoft|azure)\s+(?:certified\s+)?[\w\s\-]+",
+                r"(?:cka|ckad|cks|certified\s+kubernetes\s+[\w\s\-]+)",
+                r"(?:comptia\s+[\w\+\s\-]+)",
+                r"(?:cisco|ccna|ccnp|ccie)\s*[\w\s\-]*",
+                r"(?:meta\s+[\w\s\-]+developer\s+certificate)",
+                r"(?:deeplearning\.ai\s+[\w\s\-]+specialization)",
+                r"(?:hashicorp\s+certified\s+[\w\s\-]+)",
+                r"(?:red\s+hat\s+certified\s+[\w\s\-]+)",
+            ]
+            for pat in known_cert_patterns:
+                matches = re.findall(pat, text, re.IGNORECASE)
+                for m in matches:
+                    clean_m = m.strip(" ,.-")
+                    if len(clean_m) > 4 and clean_m not in raw_certs:
+                        raw_certs.append(clean_m)
+
+        evaluated = [certification_evaluator.evaluate(c) for c in raw_certs]
+        return evaluated
 
 
 resume_parser = ResumeParserService()

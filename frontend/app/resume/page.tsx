@@ -10,13 +10,16 @@ import {
   Briefcase,
   Code,
   Award,
+  ShieldCheck,
+  ShieldAlert,
+  Sparkles,
 } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
 import { Button } from "@/components/ui/button";
 import { SkillChip, PanelSkeleton, ErrorState } from "@/components/shared/primitives";
 import { api } from "@/lib/api";
 import { useApi } from "@/hooks/use-api";
-import type { ResumeAnalysis } from "@/types";
+import type { ResumeAnalysis, ResumeCertification } from "@/types";
 
 interface ResumeExperience {
   title?: string;
@@ -212,22 +215,112 @@ export default function ResumePage() {
                   </div>
                 </div>
 
-                {/* Certifications */}
-                <div className="surface p-6 rounded-2xl border border-white/10 shadow-lg space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Award className="size-4.5 text-amber-400" />
-                    <h3 className="font-heading text-base font-bold text-white">
-                      Certifications
-                    </h3>
+                {/* Certifications with Credibility & Legitimacy Scoring */}
+                <div className="surface p-6 rounded-2xl border border-white/10 shadow-lg space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Award className="size-4.5 text-amber-400" />
+                      <h3 className="font-heading text-base font-bold text-white">
+                        Certifications & Legitimacy
+                      </h3>
+                    </div>
+                    <span className="text-[11px] font-semibold text-muted-foreground">
+                      {(parsed.certifications || []).length} Detected
+                    </span>
                   </div>
-                  <ul className="space-y-2">
-                    {(parsed.certifications || ["Meta Front-End Developer Certificate", "Google Cloud Essentials"]).map((cert, idx) => (
-                      <li key={idx} className="flex items-center gap-2 text-xs text-slate-200">
-                        <CheckCircle2 className="size-3.5 text-emerald-400" />
-                        <span>{cert}</span>
-                      </li>
-                    ))}
-                  </ul>
+
+                  <p className="text-xs text-muted-foreground">
+                    Certifications from accredited bodies (AWS, Google, Microsoft, CNCF, Cisco, CompTIA, Meta) are verified and prioritized. Low-priority or attendance certificates are scored accordingly.
+                  </p>
+
+                  <div className="space-y-3">
+                    {(parsed.certifications || []).map((cert, idx) => {
+                      const isObj = typeof cert === "object" && cert !== null;
+                      const cObj = isObj ? (cert as ResumeCertification) : null;
+                      const certName = cObj ? cObj.name : String(cert);
+                      const issuer = cObj?.issuer || "Independent Issuer";
+                      const score = cObj?.credibility_score ?? 70;
+                      const priority = cObj?.priority_level ?? (score >= 85 ? "High" : score >= 60 ? "Medium" : "Low");
+                      const notes = cObj?.reputation_notes;
+                      const skills = cObj?.skills_validated || [];
+
+                      const isHigh = score >= 85;
+                      const isMed = score >= 60 && score < 85;
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-3.5 rounded-xl border transition-all ${
+                            isHigh
+                              ? "bg-emerald-950/20 border-emerald-500/30"
+                              : isMed
+                              ? "bg-sky-950/20 border-sky-500/30"
+                              : "bg-zinc-900/40 border-white/10"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {isHigh ? (
+                                  <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+                                ) : isMed ? (
+                                  <CheckCircle2 className="size-4 text-sky-400 shrink-0" />
+                                ) : (
+                                  <ShieldAlert className="size-4 text-amber-400 shrink-0" />
+                                )}
+                                <h4 className="text-xs sm:text-sm font-semibold text-white">{certName}</h4>
+                                {cObj?.year && (
+                                  <span className="text-[10px] text-muted-foreground font-mono">({cObj.year})</span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-300 font-medium">
+                                Issuer: <span className="text-white font-semibold">{issuer}</span>
+                              </p>
+                            </div>
+
+                            {/* Credibility Score Badge */}
+                            <div className="text-right shrink-0">
+                              <span
+                                className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                  isHigh
+                                    ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                                    : isMed
+                                    ? "bg-sky-500/15 text-sky-300 border-sky-500/30"
+                                    : "bg-amber-500/15 text-amber-300 border-amber-500/30"
+                                }`}
+                              >
+                                {score}/100 · {priority} Priority
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Reputation & AI note */}
+                          {notes && (
+                            <p className="text-[11px] text-slate-300 mt-2 leading-relaxed bg-black/25 p-2 rounded-lg border border-white/5">
+                              {notes}
+                            </p>
+                          )}
+
+                          {/* Validated Skills */}
+                          {skills.length > 0 && (
+                            <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                Validated Skills:
+                              </span>
+                              {skills.map((s) => (
+                                <span
+                                  key={s}
+                                  className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-cyan-300 font-medium"
+                                >
+                                  ✓ {s}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

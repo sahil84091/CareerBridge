@@ -11,6 +11,8 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  Video,
+  ExternalLink,
 } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
 import { Button } from "@/components/ui/button";
@@ -237,6 +239,46 @@ export default function RoadmapPage() {
                             <p className="text-xs sm:text-sm text-white font-medium">
                               {phase.milestone_projects[0]}
                             </p>
+                          </div>
+                        )}
+
+                        {/* Curated Video Tutorials */}
+                        {phase.curated_videos && phase.curated_videos.length > 0 && (
+                          <div className="space-y-2 pt-1">
+                            <span className="text-xs font-semibold text-slate-400 block flex items-center gap-1.5">
+                              <Video className="size-3.5 text-rose-400" />
+                              Curated Video Masterclasses & Tutorials:
+                            </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {phase.curated_videos.map((vid, vIdx) => (
+                                <a
+                                  key={vIdx}
+                                  href={vid.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 flex flex-col justify-between group transition-all"
+                                >
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                      <span className="text-rose-400 font-semibold">{vid.platform}</span>
+                                      {vid.duration && <span className="font-mono">{vid.duration}</span>}
+                                    </div>
+                                    <h5 className="text-xs font-semibold text-white group-hover:text-primary transition-colors line-clamp-2">
+                                      {vid.title}
+                                    </h5>
+                                  </div>
+                                  <div className="pt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+                                    <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-cyan-300 font-medium">
+                                      {vid.skill}
+                                    </span>
+                                    <span className="inline-flex items-center gap-0.5 text-primary group-hover:text-white font-medium">
+                                      <span>Watch</span>
+                                      <ExternalLink className="size-2.5" />
+                                    </span>
+                                  </div>
+                                </a>
+                              ))}
+                            </div>
                           </div>
                         )}
 

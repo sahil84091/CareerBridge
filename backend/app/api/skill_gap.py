@@ -1,8 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.app.database.session import get_db
-from backend.app.models.entities import User, CareerRole, SkillGap, UserSkill, Profile
-from backend.app.schemas.schemas import SkillGapAnalysisRequest, SkillGapAnalysisResponse, SkillGapItem
+from backend.app.models.entities import User, CareerRole, SkillGap, UserSkill, Profile, Resume
+from backend.app.schemas.schemas import (
+    SkillGapAnalysisRequest,
+    SkillGapAnalysisResponse,
+    SkillGapItem,
+    ResumeCertification,
+    CuratedResource,
+    StructuredPlanStep,
+)
 from backend.app.ai.skill_gap_engine import skill_gap_engine
 from backend.app.security import get_current_user
 
@@ -46,10 +53,22 @@ def analyze_skill_gap(
         for rs in role.required_skills
     ]
 
+    # Fetch latest user certifications if available from resume
+    latest_resume = (
+        db.query(Resume)
+        .filter(Resume.user_id == user.id)
+        .order_by(Resume.uploaded_at.desc())
+        .first()
+    )
+    certifications = []
+    if latest_resume and latest_resume.parsed_data:
+        certifications = latest_resume.parsed_data.get("certifications", [])
+
     analysis = skill_gap_engine.analyze_gap(
         user_skills=user_skills_data,
         role_skills=role_skills_data,
         role_title=role.title,
+        certifications=certifications,
     )
 
     # Save or update record in database
@@ -95,6 +114,16 @@ def analyze_skill_gap(
         matched_count=analysis["matched_count"],
         partial_count=analysis["partial_count"],
         missing_count=analysis["missing_count"],
+        certifications_summary=[
+            ResumeCertification(**c) if isinstance(c, dict) else ResumeCertification(name=str(c))
+            for c in analysis.get("certifications_summary", [])
+        ],
+        curated_resources=[
+            CuratedResource(**r) for r in analysis.get("curated_resources", [])
+        ],
+        structured_plan=[
+            StructuredPlanStep(**p) for p in analysis.get("structured_plan", [])
+        ],
     )
 
 

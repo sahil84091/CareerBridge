@@ -78,6 +78,8 @@ class Profile(Base):
     education_level = Column(String, nullable=True)
     github_url = Column(String, nullable=True)
     linkedin_url = Column(String, nullable=True)
+    github_data = Column(JSON, nullable=True)
+    linkedin_data = Column(JSON, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships

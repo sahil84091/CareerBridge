@@ -4,6 +4,7 @@ import type {
   DashboardData,
   Opportunity,
   Profile,
+  ProfileEnhancementResponse,
   ResumeAnalysis,
   Roadmap,
   RoadmapPhase,
@@ -91,6 +92,16 @@ export const api = {
   getDashboard: () => live(() => request<DashboardData>("/api/dashboard")),
   getProfile: () => live(() => request<Profile>("/api/profile")),
   updateProfile: (data: Partial<Profile>) => request<Profile>("/api/profile", { method: "PUT", body: JSON.stringify(data) }),
+  linkGitHub: (github_url: string) => request<Profile>("/api/profile/link/github", {
+    method: "POST", body: JSON.stringify({ github_url }),
+  }),
+  unlinkGitHub: () => request<Profile>("/api/profile/link/github", { method: "DELETE" }),
+  linkLinkedIn: (payload: { linkedin_url: string; headline?: string; summary?: string; skills_text?: string }) =>
+    request<Profile>("/api/profile/link/linkedin", {
+      method: "POST", body: JSON.stringify(payload),
+    }),
+  unlinkLinkedIn: () => request<Profile>("/api/profile/link/linkedin", { method: "DELETE" }),
+  getProfileEnhancements: () => live(() => request<ProfileEnhancementResponse>("/api/profile/enhancements")),
   getPreferences: () => live(() => request<UserPreferences>("/api/preferences")),
   updatePreferences: (data: UserPreferences) => request<UserPreferences>("/api/preferences", { method: "PUT", body: JSON.stringify(data) }),
   getUserSkills: () => live(() => request<UserSkillItem[]>("/api/skills/user")),

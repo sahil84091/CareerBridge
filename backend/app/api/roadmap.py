@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 
 from backend.app.ai.gemini import gemini_service
 from backend.app.ai.roadmap_generator import roadmap_generator
+from backend.app.ai.learning_resources import get_curated_resources_for_skills
 from backend.app.database.session import get_db
 from backend.app.models.entities import CareerRole, Profile, Roadmap, RoadmapItem, SkillGap, User, UserSkill
-from backend.app.schemas.schemas import RoadmapPhaseItem, RoadmapResponse
+from backend.app.schemas.schemas import RoadmapPhaseItem, RoadmapResponse, CuratedResource
 from backend.app.security import get_current_user
 
 router = APIRouter(prefix="/api/roadmap", tags=["Career Roadmap"])
@@ -31,6 +32,10 @@ def _format_roadmap(roadmap: Roadmap) -> RoadmapResponse:
         completed_goals=item.completed_goals or [],
         status=item.status,
         id=item.id,
+        curated_videos=[
+            CuratedResource(**res)
+            for res in get_curated_resources_for_skills(item.skills or [])[:3]
+        ],
     ) for item in sorted(roadmap.items, key=lambda x: x.phase_number)]
     return RoadmapResponse(
         id=roadmap.id,

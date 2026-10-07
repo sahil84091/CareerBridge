@@ -333,6 +333,7 @@ def test_opportunity_api_uses_authenticated_match_results(api_client, account, m
         "description": "Python work", "apply_url": "https://jobs.example.test/1",
         "required_skills": ["Python"], "preferred_skills": [], "match_score": 85.0,
         "matched_skills": ["Python"], "missing_skills": [],
+        "source": "Adzuna",
     }]
     monkeypatch.setattr(opportunities, "matched_opportunities", lambda *args, **kwargs: expected)
     response = api_client.get("/api/opportunities?type_filter=Full-time")

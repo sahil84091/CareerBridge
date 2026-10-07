@@ -4,7 +4,13 @@
       "id": "skill_js",
       "name": "JavaScript",
       "category": "Frontend",
-      "aliases": ["js", "es6", "ecmascript", "vanilla js", "modern javascript"],
+      "aliases": [
+        "js",
+        "es6",
+        "ecmascript",
+        "vanilla js",
+        "modern javascript"
+      ],
       "description": "Core dynamic programming language of the web",
       "importance": "High"
     },
@@ -12,7 +18,10 @@
       "id": "skill_ts",
       "name": "TypeScript",
       "category": "Frontend",
-      "aliases": ["ts", "typescript lang"],
+      "aliases": [
+        "ts",
+        "typescript lang"
+      ],
       "description": "Typed superset of JavaScript compiling to plain JavaScript",
       "importance": "High"
     },
@@ -20,7 +29,11 @@
       "id": "skill_react",
       "name": "React",
       "category": "Frontend",
-      "aliases": ["reactjs", "react.js", "react native core"],
+      "aliases": [
+        "reactjs",
+        "react.js",
+        "react native core"
+      ],
       "description": "Declarative component-based frontend library",
       "importance": "High"
     },
@@ -28,7 +41,11 @@
       "id": "skill_nextjs",
       "name": "Next.js",
       "category": "Frontend",
-      "aliases": ["next", "nextjs", "next.js framework"],
+      "aliases": [
+        "next",
+        "nextjs",
+        "next.js framework"
+      ],
       "description": "Fullstack React framework with SSR and App Router",
       "importance": "High"
     },
@@ -36,7 +53,10 @@
       "id": "skill_html",
       "name": "HTML",
       "category": "Frontend",
-      "aliases": ["html5", "semantic html"],
+      "aliases": [
+        "html5",
+        "semantic html"
+      ],
       "description": "Standard markup language for documents designed to be displayed in a web browser",
       "importance": "High"
     },
@@ -44,7 +64,11 @@
       "id": "skill_css",
       "name": "CSS",
       "category": "Frontend",
-      "aliases": ["css3", "vanilla css", "cascading style sheets"],
+      "aliases": [
+        "css3",
+        "vanilla css",
+        "cascading style sheets"
+      ],
       "description": "Style sheet language used for describing presentation",
       "importance": "High"
     },
@@ -52,7 +76,10 @@
       "id": "skill_tailwind",
       "name": "Tailwind CSS",
       "category": "Frontend",
-      "aliases": ["tailwind", "tailwindcss"],
+      "aliases": [
+        "tailwind",
+        "tailwindcss"
+      ],
       "description": "Utility-first CSS framework for rapid UI development",
       "importance": "Medium"
     },
@@ -60,7 +87,11 @@
       "id": "skill_python",
       "name": "Python",
       "category": "Backend",
-      "aliases": ["py", "python3", "python 3"],
+      "aliases": [
+        "py",
+        "python3",
+        "python 3"
+      ],
       "description": "High-level programming language known for readability and vast ecosystem",
       "importance": "High"
     },
@@ -68,7 +99,10 @@
       "id": "skill_fastapi",
       "name": "FastAPI",
       "category": "Backend",
-      "aliases": ["fast-api", "fast api"],
+      "aliases": [
+        "fast-api",
+        "fast api"
+      ],
       "description": "Modern, high-performance web framework for building APIs with Python",
       "importance": "High"
     },
@@ -76,7 +110,11 @@
       "id": "skill_nodejs",
       "name": "Node.js",
       "category": "Backend",
-      "aliases": ["node", "nodejs", "node js"],
+      "aliases": [
+        "node",
+        "nodejs",
+        "node js"
+      ],
       "description": "Asynchronous event-driven JavaScript runtime",
       "importance": "High"
     },
@@ -84,7 +122,10 @@
       "id": "skill_express",
       "name": "Express.js",
       "category": "Backend",
-      "aliases": ["express", "expressjs"],
+      "aliases": [
+        "express",
+        "expressjs"
+      ],
       "description": "Fast, unopinionated, minimalist web framework for Node.js",
       "importance": "Medium"
     },
@@ -92,7 +133,13 @@
       "id": "skill_rest",
       "name": "REST API",
       "category": "Backend",
-      "aliases": ["rest", "restful", "rest apis", "restful api", "restful apis"],
+      "aliases": [
+        "rest",
+        "restful",
+        "rest apis",
+        "restful api",
+        "restful apis"
+      ],
       "description": "Architectural style for designing networked applications",
       "importance": "High"
     },
@@ -100,7 +147,10 @@
       "id": "skill_graphql",
       "name": "GraphQL",
       "category": "Backend",
-      "aliases": ["gql", "graphql api"],
+      "aliases": [
+        "gql",
+        "graphql api"
+      ],
       "description": "Query language for APIs and runtime for fulfilling queries with data",
       "importance": "Medium"
     },
@@ -108,7 +158,11 @@
       "id": "skill_postgresql",
       "name": "PostgreSQL",
       "category": "Database",
-      "aliases": ["postgres", "pgsql", "postgresql db"],
+      "aliases": [
+        "postgres",
+        "pgsql",
+        "postgresql db"
+      ],
       "description": "Powerful, open source object-relational database system",
       "importance": "High"
     },
@@ -116,7 +170,12 @@
       "id": "skill_sql",
       "name": "SQL",
       "category": "Database",
-      "aliases": ["structured query language", "rdbms queries", "mysql", "sqlite"],
+      "aliases": [
+        "structured query language",
+        "rdbms queries",
+        "mysql",
+        "sqlite"
+      ],
       "description": "Domain-specific language used in programming and managing relational databases",
       "importance": "High"
     },
@@ -124,7 +183,11 @@
       "id": "skill_mongodb",
       "name": "MongoDB",
       "category": "Database",
-      "aliases": ["mongo", "nosql mongodb", "mongoose"],
+      "aliases": [
+        "mongo",
+        "nosql mongodb",
+        "mongoose"
+      ],
       "description": "Source-available, cross-platform, document-oriented database program",
       "importance": "Medium"
     },
@@ -132,7 +195,10 @@
       "id": "skill_redis",
       "name": "Redis",
       "category": "Database",
-      "aliases": ["redis cache", "in-memory cache"],
+      "aliases": [
+        "redis cache",
+        "in-memory cache"
+      ],
       "description": "In-memory data structure store used as a database, cache, and message broker",
       "importance": "Medium"
     },
@@ -140,7 +206,13 @@
       "id": "skill_git",
       "name": "Git",
       "category": "DevOps",
-      "aliases": ["github", "gitlab", "version control", "git cli"],
+      "aliases": [
+        "github",
+        "gitlab",
+        "version control",
+        "git cli",
+        "git"
+      ],
       "description": "Distributed version control system that tracks changes in source code",
       "importance": "High"
     },
@@ -148,7 +220,11 @@
       "id": "skill_docker",
       "name": "Docker",
       "category": "DevOps",
-      "aliases": ["containerization", "containers", "docker compose"],
+      "aliases": [
+        "containerization",
+        "containers",
+        "docker compose"
+      ],
       "description": "Platform for developing, shipping, and running applications in containers",
       "importance": "High"
     },
@@ -156,7 +232,10 @@
       "id": "skill_kubernetes",
       "name": "Kubernetes",
       "category": "DevOps",
-      "aliases": ["k8s", "kube"],
+      "aliases": [
+        "k8s",
+        "kube"
+      ],
       "description": "Open-source container orchestration system",
       "importance": "Medium"
     },
@@ -164,7 +243,12 @@
       "id": "skill_aws",
       "name": "AWS",
       "category": "Cloud",
-      "aliases": ["amazon web services", "s3", "ec2", "lambda"],
+      "aliases": [
+        "amazon web services",
+        "s3",
+        "ec2",
+        "lambda"
+      ],
       "description": "Comprehensive, evolving cloud computing platform by Amazon",
       "importance": "High"
     },
@@ -172,7 +256,12 @@
       "id": "skill_cicd",
       "name": "CI/CD",
       "category": "DevOps",
-      "aliases": ["continuous integration", "github actions", "gitlab ci", "jenkins"],
+      "aliases": [
+        "continuous integration",
+        "github actions",
+        "gitlab ci",
+        "jenkins"
+      ],
       "description": "Continuous Integration and Continuous Deployment pipeline practices",
       "importance": "Medium"
     },
@@ -180,7 +269,12 @@
       "id": "skill_ml",
       "name": "Machine Learning",
       "category": "AI/ML",
-      "aliases": ["ml", "scikit-learn", "sklearn", "supervised learning"],
+      "aliases": [
+        "ml",
+        "scikit-learn",
+        "sklearn",
+        "supervised learning"
+      ],
       "description": "Study of computer algorithms that improve automatically through experience and data",
       "importance": "High"
     },
@@ -188,7 +282,10 @@
       "id": "skill_pytorch",
       "name": "PyTorch",
       "category": "AI/ML",
-      "aliases": ["torch", "pytorch framework"],
+      "aliases": [
+        "torch",
+        "pytorch framework"
+      ],
       "description": "Machine learning framework based on the Torch library",
       "importance": "High"
     },
@@ -196,7 +293,14 @@
       "id": "skill_llm",
       "name": "Large Language Models",
       "category": "AI/ML",
-      "aliases": ["llm", "rag", "langchain", "prompt engineering", "openai api", "gemini api"],
+      "aliases": [
+        "llm",
+        "rag",
+        "langchain",
+        "prompt engineering",
+        "openai api",
+        "gemini api"
+      ],
       "description": "Generative AI and neural language models for text understanding and reasoning",
       "importance": "High"
     },
@@ -204,7 +308,16 @@
       "id": "skill_problem_solving",
       "name": "Problem Solving",
       "category": "Soft Skills",
-      "aliases": ["analytical thinking", "critical thinking", "data structures & algorithms", "dsa"],
+      "aliases": [
+        "analytical thinking",
+        "critical thinking",
+        "data structures & algorithms",
+        "dsa",
+        "troubleshoot",
+        "troubleshooting",
+        "problem solving",
+        "bug fixing"
+      ],
       "description": "Ability to analyze complex issues and engineer pragmatic solutions",
       "importance": "High"
     },
@@ -212,7 +325,12 @@
       "id": "skill_communication",
       "name": "Technical Communication",
       "category": "Soft Skills",
-      "aliases": ["collaboration", "teamwork", "written communication", "presentation"],
+      "aliases": [
+        "collaboration",
+        "teamwork",
+        "written communication",
+        "presentation"
+      ],
       "description": "Clear articulation of technical designs and cooperative development",
       "importance": "High"
     },
@@ -220,9 +338,220 @@
       "id": "skill_agile",
       "name": "Agile / Scrum",
       "category": "Methodology",
-      "aliases": ["scrum", "kanban", "sprint planning", "jira"],
+      "aliases": [
+        "scrum",
+        "kanban",
+        "sprint planning",
+        "jira"
+      ],
       "description": "Iterative software development lifecycle methodology",
       "importance": "Medium"
+    },
+    {
+      "id": "skill_csharp",
+      "name": "C#",
+      "category": "Backend",
+      "aliases": [
+        "c#",
+        "csharp",
+        "c sharp",
+        ".net",
+        "dotnet",
+        "asp.net"
+      ],
+      "description": "Modern object-oriented programming language by Microsoft",
+      "importance": "High"
+    },
+    {
+      "id": "skill_java",
+      "name": "Java",
+      "category": "Backend",
+      "aliases": [
+        "java",
+        "core java",
+        "spring",
+        "spring boot"
+      ],
+      "description": "Widely-used object-oriented programming language and computing platform",
+      "importance": "High"
+    },
+    {
+      "id": "skill_cpp",
+      "name": "C++",
+      "category": "Systems",
+      "aliases": [
+        "c++",
+        "cpp"
+      ],
+      "description": "High-performance general-purpose systems programming language",
+      "importance": "High"
+    },
+    {
+      "id": "skill_c",
+      "name": "C",
+      "category": "Systems",
+      "aliases": [
+        "c programming",
+        "c language",
+        "c/c++"
+      ],
+      "description": "Foundational procedural computer programming language",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_golang",
+      "name": "Go",
+      "category": "Backend",
+      "aliases": [
+        "golang",
+        "go lang",
+        "go programming"
+      ],
+      "description": "Statically typed, compiled programming language designed at Google",
+      "importance": "High"
+    },
+    {
+      "id": "skill_scala",
+      "name": "Scala",
+      "category": "Backend",
+      "aliases": [
+        "scala"
+      ],
+      "description": "High-level language combining functional and object-oriented programming",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_oracle",
+      "name": "Oracle DB",
+      "category": "Database",
+      "aliases": [
+        "oracle",
+        "oracle database",
+        "pl/sql",
+        "plsql"
+      ],
+      "description": "Multi-model relational database management system",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_mysql",
+      "name": "MySQL",
+      "category": "Database",
+      "aliases": [
+        "mysql"
+      ],
+      "description": "Open-source relational database management system",
+      "importance": "High"
+    },
+    {
+      "id": "skill_linux",
+      "name": "Linux",
+      "category": "Systems",
+      "aliases": [
+        "linux",
+        "unix",
+        "bash",
+        "shell scripting"
+      ],
+      "description": "Open-source operating system kernel for server and cloud architectures",
+      "importance": "High"
+    },
+    {
+      "id": "skill_networking",
+      "name": "Computer Networking",
+      "category": "Systems",
+      "aliases": [
+        "networking",
+        "tcp/ip",
+        "ethernet",
+        "ccna",
+        "dns",
+        "http",
+        "https"
+      ],
+      "description": "Network architecture, routing, protocols and packet management",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_testing",
+      "name": "Testing & QA",
+      "category": "Software Engineering",
+      "aliases": [
+        "test automation",
+        "unit testing",
+        "test cases",
+        "testing",
+        "debug",
+        "debugging",
+        "selenium",
+        "jest",
+        "cypress",
+        "pytest",
+        "qa",
+        "quality assurance"
+      ],
+      "description": "Automated test suite creation and quality assurance lifecycle",
+      "importance": "High"
+    },
+    {
+      "id": "skill_dsa",
+      "name": "Data Structures & Algorithms",
+      "category": "Core CS",
+      "aliases": [
+        "data structures",
+        "algorithms",
+        "dsa",
+        "data structures and algorithms"
+      ],
+      "description": "Core computer science foundational problem solving and algorithmic analysis",
+      "importance": "High"
+    },
+    {
+      "id": "skill_microservices",
+      "name": "Microservices",
+      "category": "Backend",
+      "aliases": [
+        "microservices",
+        "distributed systems",
+        "service-oriented architecture"
+      ],
+      "description": "Architectural style that structures applications as a collection of services",
+      "importance": "High"
+    },
+    {
+      "id": "skill_system_design",
+      "name": "System Design",
+      "category": "Architecture",
+      "aliases": [
+        "system design",
+        "software architecture",
+        "high level design",
+        "low level design"
+      ],
+      "description": "Designing scalable, resilient software architectures and infrastructure",
+      "importance": "High"
+    },
+    {
+      "id": "skill_azure",
+      "name": "Azure",
+      "category": "Cloud",
+      "aliases": [
+        "microsoft azure",
+        "azure cloud"
+      ],
+      "description": "Cloud computing platform and services by Microsoft",
+      "importance": "High"
+    },
+    {
+      "id": "skill_gcp",
+      "name": "Google Cloud Platform",
+      "category": "Cloud",
+      "aliases": [
+        "gcp",
+        "google cloud"
+      ],
+      "description": "Suite of cloud computing services offered by Google",
+      "importance": "High"
     }
   ]
 }

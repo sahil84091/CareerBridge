@@ -1,17 +1,64 @@
+from datetime import datetime
 import json
 import os
 
 from sqlalchemy.orm import Session
 
 from backend.app.database.session import SessionLocal
-from backend.app.models.entities import CareerRole, RoleSkill, Skill
+from backend.app.models.entities import CareerRole, RoleSkill, Skill, Opportunity
 
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data"))
 
 
-def seed_database():
-    """Idempotently load public taxonomy and career-role reference data."""
-    db: Session = SessionLocal()
+def seed_opportunities_into(db: Session) -> list[Opportunity]:
+    """Loads sample opportunities into the provided database session."""
+    opps_file = os.path.join(DATA_DIR, "opportunities", "sample_jobs.json")
+    if os.path.exists(opps_file):
+        with open(opps_file, "r", encoding="utf-8") as file:
+            opp_list = json.load(file).get("opportunities", [])
+            for item in opp_list:
+                existing = db.query(Opportunity).filter(Opportunity.id == item["id"]).first()
+                if not existing:
+                    db.add(Opportunity(
+                        id=item["id"],
+                        title=item["title"],
+                        company=item["company"],
+                        location=item["location"],
+                        type=item.get("type", "Full-time"),
+                        salary_range=item.get("salary_range"),
+                        experience_level=item.get("experience_level", "Entry to Mid"),
+                        description=item.get("description", ""),
+                        apply_url=item.get("apply_url"),
+                        required_skills=item.get("required_skills", []),
+                        preferred_skills=item.get("preferred_skills", []),
+                        posted_at=datetime.utcnow(),
+                        source=item.get("source", "Adzuna"),
+                        external_id=item.get("external_id"),
+                        fetched_at=datetime.utcnow(),
+                    ))
+                else:
+                    existing.title = item["title"]
+                    existing.company = item["company"]
+                    existing.location = item["location"]
+                    existing.type = item.get("type", "Full-time")
+                    existing.salary_range = item.get("salary_range")
+                    existing.experience_level = item.get("experience_level", "Entry to Mid")
+                    existing.description = item.get("description", "")
+                    existing.apply_url = item.get("apply_url")
+                    existing.required_skills = item.get("required_skills", [])
+                    existing.preferred_skills = item.get("preferred_skills", [])
+                    existing.source = item.get("source", "Adzuna")
+                    existing.fetched_at = datetime.utcnow()
+        db.commit()
+    return db.query(Opportunity).all()
+
+
+def seed_database(db: Session | None = None):
+    """Idempotently load public taxonomy, career-role reference data, and curated opportunities."""
+    should_close = False
+    if db is None:
+        db = SessionLocal()
+        should_close = True
     try:
         if db.query(Skill).count() == 0:
             skills_file = os.path.join(DATA_DIR, "skills", "skills_taxonomy.json")
@@ -46,9 +93,12 @@ def seed_database():
                             importance=required.get("importance", "Core"),
                             weight=float(required.get("weight", 1.0)),
                         ))
+
+        seed_opportunities_into(db)
         db.commit()
     except Exception:
         db.rollback()
         raise
     finally:
-        db.close()
+        if should_close:
+            db.close()
