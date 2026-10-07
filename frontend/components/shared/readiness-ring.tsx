@@ -98,7 +98,7 @@ export function ReadinessRing({ value, size = 168, stroke = 12, label = "Ready",
           fill="none"
           strokeDasharray={c}
           strokeDashoffset={target}
-          style={{ filter: "drop-shadow(0 0 10px rgba(79,124,255,0.45))" }}
+          style={{ filter: "drop-shadow(0 0 4px rgba(79,124,255,0.24))" }}
         />
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">

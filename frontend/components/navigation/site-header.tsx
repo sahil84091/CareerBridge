@@ -2,115 +2,82 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, ArrowRight, Sparkles } from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
-import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 pt-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-5 sm:px-6 rounded-2xl glass border border-white/10 shadow-2xl shadow-black/40 backdrop-blur-xl">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[#07162e]/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-20 max-w-[1360px] items-center justify-between gap-4">
         {/* Logo */}
         <Logo />
 
         {/* Center Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-          <Link href="/" className="text-white hover:text-primary transition-colors">
-            Home
-          </Link>
-          <a href="#features" className="hover:text-white transition-colors">
-            Features
+        <nav className="hidden items-center gap-8 text-sm font-medium text-blue-100/75 md:flex">
+          <a href="#features" className="transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+            Product
           </a>
-          <a href="#students" className="hover:text-white transition-colors">
-            For Students
+          <a href="#how-it-works" className="transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+            How it works
           </a>
-          <a href="#recruiters" className="hover:text-white transition-colors">
-            For Recruiters
-          </a>
-          <a href="#about" className="hover:text-white transition-colors">
-            About
+          <a href="#features" className="transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+            For students
           </a>
         </nav>
 
         {/* Right CTA */}
-        <div className="hidden md:flex items-center gap-3">
-          <Link href="/login">
-            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
-              Sign In
-            </Button>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="hidden h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 via-blue-600 to-violet-600 px-6 text-sm font-semibold text-white shadow-[0_0_28px_rgba(43,125,255,0.4)] transition hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 sm:inline-flex">
+            <span>Get started</span>
+            <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
-          <Link href="/dashboard">
-            <Button variant="gradient" size="sm" className="rounded-xl px-5">
-              <span>Get Started</span>
-              <ArrowRight className="size-3.5 ml-1" />
-            </Button>
-          </Link>
-        </div>
 
         {/* Mobile menu button */}
         <button
           type="button"
-          className="md:hidden p-2 text-slate-300 hover:text-white rounded-lg focus:outline-none"
+          className="rounded-lg p-2 text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle Navigation Menu"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-navigation"
         >
           {mobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
+        </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden mt-2 p-5 rounded-2xl glass border border-white/10 text-sm space-y-3">
-          <Link
-            href="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-white font-medium"
-          >
-            Home
-          </Link>
+        <nav id="mobile-navigation" aria-label="Main navigation" className="mx-auto mb-4 max-w-[1360px] space-y-1 rounded-2xl border border-white/10 bg-[#0a1933]/95 p-4 text-sm shadow-2xl md:hidden">
           <a
             href="#features"
             onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-muted-foreground hover:text-white"
+            className="block rounded-lg px-3 py-3 font-medium text-white hover:bg-white/[0.05]"
           >
-            Features
+            Product
           </a>
           <a
-            href="#students"
+            href="#how-it-works"
             onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-muted-foreground hover:text-white"
+            className="block rounded-lg px-3 py-3 text-blue-100/75 hover:bg-white/[0.05] hover:text-white"
           >
-            For Students
+            How it works
           </a>
           <a
-            href="#recruiters"
+            href="#features"
             onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-muted-foreground hover:text-white"
+            className="block rounded-lg px-3 py-3 text-blue-100/75 hover:bg-white/[0.05] hover:text-white"
           >
-            For Recruiters
+            For students
           </a>
-          <a
-            href="#about"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-muted-foreground hover:text-white"
-          >
-            About
-          </a>
-          <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
-            <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="outline" className="w-full">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="gradient" className="w-full">
-                Get Started
-              </Button>
+          <div className="border-t border-white/10 pt-3">
+            <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 via-blue-600 to-violet-600 px-5 font-semibold text-white shadow-[0_0_28px_rgba(43,125,255,0.4)]">
+              Get started <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </div>
-        </div>
+        </nav>
       )}
     </header>
   );
