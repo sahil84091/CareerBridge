@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { animate } from "animejs";
-import { AlertTriangle, CheckCircle2, CircleDashed, CircleSlash, Database, RefreshCw, Wifi } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleDashed, CircleSlash, RefreshCw, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { prefersReducedMotion } from "@/hooks/use-anime";
@@ -130,20 +130,19 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   );
 }
 
-/** Small indicator showing whether data is live from FastAPI or the demo dataset. */
+/** Small indicator showing that data came from the live API. */
 export function DataSourceBadge({ source }: { source: DataSource | null }) {
   if (!source) return null;
-  const live = source === "live";
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium",
-        live ? "border-success/30 bg-success/10 text-emerald-300" : "border-border bg-white/[0.03] text-muted-foreground",
+        "border-success/30 bg-success/10 text-emerald-300",
       )}
-      title={live ? "Connected to CareerBridge API" : "Backend offline — showing demo data"}
+      title="Connected to CareerBridge API"
     >
-      {live ? <Wifi className="size-3" aria-hidden /> : <Database className="size-3" aria-hidden />}
-      {live ? "Live data" : "Demo data"}
+      <Wifi className="size-3" aria-hidden />
+      Live data
     </span>
   );
 }

@@ -5,13 +5,10 @@ import Link from "next/link";
 import {
   Route,
   CheckCircle2,
-  Clock,
   Sparkles,
   ArrowRight,
   FolderGit2,
-  BookOpen,
   Calendar,
-  Layers,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -23,17 +20,46 @@ import { useApi } from "@/hooks/use-api";
 import type { Roadmap, RoadmapPhase } from "@/types";
 
 export default function RoadmapPage() {
-  const { data, loading, error, reload, source } = useApi<Roadmap>(() => api.getRoadmap());
+  const { data, loading, error, reload, setData, source } = useApi<Roadmap>(() => api.getRoadmap());
   const [expandedPhase, setExpandedPhase] = useState<number | null>(2);
-  const [completedGoals, setCompletedGoals] = useState<Record<string, boolean>>({
-    "Async patterns & the event loop": true,
-    "Strict TypeScript generics": true,
-    "Branching + PR workflow": true,
-    "Hooks, state & data fetching": true,
-  });
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const activePhase = data?.phases.find((phase) => phase.status === "in_progress");
+  const nextPhase = data?.phases.find((phase) => phase.status === "pending");
+  const progressLabel = activePhase
+    ? `Phase ${activePhase.phase_number} of ${data?.phases.length} In Progress`
+    : nextPhase
+      ? `Phase ${nextPhase.phase_number} of ${data?.phases.length} Ready to Start`
+      : "All roadmap phases completed";
 
-  const toggleGoal = (goal: string) => {
-    setCompletedGoals((prev) => ({ ...prev, [goal]: !prev[goal] }));
+  const toggleGoal = async (phase: RoadmapPhase, goal: string) => {
+    if (!phase.id || saving) return;
+    setSaving(true);
+    setActionError(null);
+    const completed = new Set(phase.completed_goals ?? []);
+    if (completed.has(goal)) completed.delete(goal);
+    else completed.add(goal);
+    try {
+      const updated = await api.updateRoadmapItem(phase.id, { completed_goals: [...completed] });
+      setData(() => updated);
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Could not save roadmap progress.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const regenerate = async () => {
+    setSaving(true);
+    setActionError(null);
+    try {
+      const updated = await api.generateRoadmap(data?.role_id);
+      setData(() => updated.data);
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Could not regenerate roadmap.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -49,18 +75,19 @@ export default function RoadmapPage() {
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Phased action plan tailored to bridge your specific skill gaps for{" "}
-              <span className="text-white font-semibold">{data?.role_title || "Full Stack Developer"}</span>.
+              <span className="text-white font-semibold">{data?.role_title || "your selected role"}</span>.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground flex items-center gap-1.5">
               <Calendar className="size-3.5 text-primary" />
-              <span>Target: {data?.target_duration || "16 weeks"}</span>
+              <span>Target: {data?.target_duration || "Not set"}</span>
             </span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => reload()}
+              onClick={regenerate}
+              disabled={saving}
               className="rounded-xl border-white/10 hover:bg-white/5 text-xs text-slate-300"
             >
               <Sparkles className="size-3.5 mr-1.5 text-cyan-400" />
@@ -70,6 +97,7 @@ export default function RoadmapPage() {
         </div>
 
         {/* Loading / Error States */}
+        {actionError && <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{actionError}</p>}
         {loading ? (
           <div className="space-y-6">
             <PanelSkeleton lines={3} />
@@ -89,18 +117,18 @@ export default function RoadmapPage() {
                     Overall Curriculum Progress
                   </span>
                   <h3 className="font-heading text-xl sm:text-2xl font-bold text-white mt-1">
-                    Phase 2 of 5 In Progress
+                    {progressLabel}
                   </h3>
                 </div>
                 <div className="text-right">
                   <span className="font-heading text-3xl font-bold text-white">
-                    {Math.round(data.current_progress || 48)}%
+                    {Math.round(data.current_progress)}%
                   </span>
                   <p className="text-[11px] text-muted-foreground">Milestones Achieved</p>
                 </div>
               </div>
 
-              <ProgressBar value={data.current_progress || 48} className="h-3" />
+              <ProgressBar value={data.current_progress} className="h-3" />
             </div>
 
             {/* Phased Timeline List */}
@@ -220,11 +248,11 @@ export default function RoadmapPage() {
                             </span>
                             <div className="space-y-2">
                               {phase.learning_goals.map((goal) => {
-                                const checked = !!completedGoals[goal];
+                                const checked = (phase.completed_goals ?? []).includes(goal);
                                 return (
                                   <label
                                     key={goal}
-                                    onClick={() => toggleGoal(goal)}
+                                    onClick={() => void toggleGoal(phase, goal)}
                                     className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] cursor-pointer transition-all"
                                   >
                                     <input

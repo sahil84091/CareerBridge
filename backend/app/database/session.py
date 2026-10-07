@@ -1,8 +1,8 @@
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+from backend.app.config import get_settings
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./careerbridge.db")
+DATABASE_URL = get_settings().database_url
 
 # For SQLite, enable check_same_thread=False
 connect_args = {}

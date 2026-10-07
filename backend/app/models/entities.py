@@ -25,7 +25,8 @@ class User(Base):
     id = Column(String, primary_key=True, default=generate_id)
     email = Column(String, unique=True, index=True, nullable=False)
     full_name = Column(String, nullable=False)
-    password_hash = Column(String, nullable=False, default="demo_hash")
+    password_hash = Column(String, nullable=True)
+    google_subject = Column(String, unique=True, index=True, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -35,6 +36,33 @@ class User(Base):
     skill_gaps = relationship("SkillGap", back_populates="user", cascade="all, delete-orphan")
     roadmaps = relationship("Roadmap", back_populates="user", cascade="all, delete-orphan")
     recommendations = relationship("Recommendation", back_populates="user", cascade="all, delete-orphan")
+    sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
+    preferences = relationship("UserPreference", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+
+    id = Column(String, primary_key=True, default=generate_id)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    revoked_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user = relationship("User", back_populates="sessions")
+
+
+class UserPreference(Base):
+    __tablename__ = "user_preferences"
+
+    id = Column(String, primary_key=True, default=generate_id)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    salary_expectation = Column(String, nullable=True)
+    remote_only = Column(Boolean, nullable=False, default=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="preferences")
 
 
 class Profile(Base):
@@ -46,8 +74,8 @@ class Profile(Base):
     current_title = Column(String, nullable=True)
     target_role_id = Column(String, ForeignKey("career_roles.id"), nullable=True)
     target_role_title = Column(String, nullable=True)
-    experience_level = Column(String, default="Entry Level")
-    education_level = Column(String, default="Bachelor's Degree")
+    experience_level = Column(String, nullable=True)
+    education_level = Column(String, nullable=True)
     github_url = Column(String, nullable=True)
     linkedin_url = Column(String, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -177,6 +205,7 @@ class RoadmapItem(Base):
     skills = Column(JSON, default=list)
     milestone_projects = Column(JSON, default=list)
     learning_goals = Column(JSON, default=list)
+    completed_goals = Column(JSON, default=list)
     status = Column(String, default="pending")  # completed, in_progress, pending
     order_index = Column(Integer, default=0)
 
@@ -199,6 +228,9 @@ class Opportunity(Base):
     required_skills = Column(JSON, default=list)
     preferred_skills = Column(JSON, default=list)
     posted_at = Column(DateTime, default=datetime.utcnow)
+    source = Column(String, default="curated", nullable=False)
+    external_id = Column(String, nullable=True)
+    fetched_at = Column(DateTime, nullable=True, index=True)
 
 
 class Recommendation(Base):

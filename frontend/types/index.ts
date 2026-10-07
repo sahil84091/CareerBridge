@@ -4,6 +4,11 @@ export interface User {
   full_name: string;
 }
 
+export interface UserPreferences {
+  salary_expectation?: string | null;
+  remote_only: boolean;
+}
+
 export interface Profile {
   id: string;
   user_id: string;
@@ -77,6 +82,7 @@ export interface SkillGapAnalysis {
 }
 
 export interface RoadmapPhase {
+  id?: string;
   phase_number: number;
   phase_name: string;
   title: string;
@@ -84,6 +90,7 @@ export interface RoadmapPhase {
   skills: string[];
   milestone_projects: string[];
   learning_goals: string[];
+  completed_goals: string[];
   status: "completed" | "in_progress" | "pending";
 }
 
@@ -127,11 +134,6 @@ export interface DashboardData {
   roadmap_progress: number;
   recommended_opportunities: Opportunity[];
   recent_skills: UserSkillItem[];
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
 }
 
 export interface ParsedSkill {

@@ -4,16 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   UploadCloud,
-  FileText,
   CheckCircle2,
-  Sparkles,
   ArrowRight,
   GraduationCap,
   Briefcase,
   Code,
   Award,
-  Layers,
-  RefreshCw,
 } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
 import { Button } from "@/components/ui/button";
@@ -32,7 +28,7 @@ interface ResumeExperience {
 interface ResumeEducation {
   degree?: string;
   institution?: string;
-  year?: string;
+  graduation_year?: string;
 }
 
 export default function ResumePage() {
@@ -41,33 +37,21 @@ export default function ResumePage() {
   );
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFileUpload = async (file: File) => {
     setUploading(true);
-    setUploadProgress("Extracting text from resume...");
+    setUploadError(null);
+    setUploadProgress("Uploading and extracting resume text…");
     try {
-      setTimeout(() => setUploadProgress("Running AI skill extraction..."), 600);
-      setTimeout(() => setUploadProgress("Normalizing canonical taxonomy..."), 1200);
       const res = await api.uploadResume(file);
-      setTimeout(() => {
-        setData(() => res.data);
-        setUploading(false);
-        setUploadProgress(null);
-      }, 1600);
+      setData(() => res.data);
     } catch (e) {
+      setUploadError(e instanceof Error ? e.message : "Resume upload failed.");
+    } finally {
       setUploading(false);
       setUploadProgress(null);
     }
-  };
-
-  const handleLoadSample = async () => {
-    setUploading(true);
-    setUploadProgress("Loading sample candidate resume...");
-    setTimeout(() => {
-      reload();
-      setUploading(false);
-      setUploadProgress(null);
-    }, 800);
   };
 
   const parsed = data?.parsed_data;
@@ -86,19 +70,8 @@ export default function ResumePage() {
               Upload your resume in PDF or DOCX to extract verified skills, education, and career milestones.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLoadSample}
-              disabled={uploading}
-              className="rounded-xl border-white/10 hover:bg-white/5 text-xs text-slate-300"
-            >
-              <Sparkles className="size-3.5 mr-1.5 text-cyan-400" />
-              <span>Load Sample Resume</span>
-            </Button>
-          </div>
         </div>
+        {uploadError && <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{uploadError}</p>}
 
         {/* Upload Dropzone */}
         <div className="surface p-8 rounded-3xl border-2 border-dashed border-white/15 hover:border-primary/50 transition-all text-center relative overflow-hidden group">
@@ -138,8 +111,10 @@ export default function ResumePage() {
             <PanelSkeleton lines={4} />
             <PanelSkeleton lines={4} />
           </div>
-        ) : error ? (
+        ) : error && error !== "No resume uploaded" ? (
           <ErrorState message={error} onRetry={reload} />
+        ) : error === "No resume uploaded" ? (
+          <div className="surface rounded-2xl border border-white/10 p-6 text-sm text-muted-foreground">No resume uploaded yet. Add a PDF, DOCX, or TXT file above to start parsing.</div>
         ) : parsed ? (
           <div className="space-y-6">
             
@@ -151,10 +126,10 @@ export default function ResumePage() {
                 </div>
                 <div>
                   <h3 className="font-heading text-base font-bold text-white">
-                    Parsed: {data.filename || "demo_resume.pdf"}
+                    Parsed: {data.filename}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Extracted {data.extracted_skills_count || parsed.skills?.length || 12} canonical skills into your live profile.
+                    Extracted {data.extracted_skills_count} canonical skills into your live profile.
                   </p>
                 </div>
               </div>
@@ -230,7 +205,7 @@ export default function ResumePage() {
                       <div key={idx} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                         <h4 className="text-sm font-semibold text-white">{edu.degree || "B.S. in Computer Science"}</h4>
                         <p className="text-xs text-muted-foreground mt-0.5">{edu.institution || "Engineering College"}</p>
-                        {edu.year && <span className="text-[11px] text-primary">{edu.year}</span>}
+                        {edu.graduation_year && <span className="text-[11px] text-primary">{edu.graduation_year}</span>}
                       </div>
                       );
                     })}

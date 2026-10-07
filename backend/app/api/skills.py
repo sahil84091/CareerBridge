@@ -5,6 +5,7 @@ from backend.app.database.session import get_db
 from backend.app.models.entities import Skill, UserSkill, User
 from backend.app.schemas.schemas import SkillItem, UserSkillItem, AddUserSkillRequest
 from backend.app.ai.taxonomy import taxonomy
+from backend.app.security import get_current_user
 
 router = APIRouter(prefix="/api/skills", tags=["Skills"])
 
@@ -26,13 +27,7 @@ def list_all_skills(db: Session = Depends(get_db)):
 
 
 @router.get("/user", response_model=List[UserSkillItem])
-def get_user_skills(user_id: str = "demo_user_01", db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        user = db.query(User).first()
-        if not user:
-            return []
-
+def get_user_skills(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     user_skills = db.query(UserSkill).filter(UserSkill.user_id == user.id).all()
     return [
         UserSkillItem(
@@ -50,16 +45,9 @@ def get_user_skills(user_id: str = "demo_user_01", db: Session = Depends(get_db)
 @router.post("/user", response_model=UserSkillItem)
 def add_user_skill(
     payload: AddUserSkillRequest,
-    user_id: str = "demo_user_01",
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        user = db.query(User).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        user_id = user.id
-
     canonical_name = taxonomy.normalize(payload.skill_name) or payload.skill_name
     skill_obj = db.query(Skill).filter(Skill.name.ilike(canonical_name)).first()
     if not skill_obj:
@@ -73,7 +61,7 @@ def add_user_skill(
 
     user_skill = (
         db.query(UserSkill)
-        .filter(UserSkill.user_id == user_id, UserSkill.skill_id == skill_obj.id)
+        .filter(UserSkill.user_id == user.id, UserSkill.skill_id == skill_obj.id)
         .first()
     )
 
@@ -81,7 +69,7 @@ def add_user_skill(
         user_skill.proficiency = payload.proficiency or "Moderate"
     else:
         user_skill = UserSkill(
-            user_id=user_id,
+            user_id=user.id,
             skill_id=skill_obj.id,
             proficiency=payload.proficiency or "Moderate",
             verified=False,
@@ -105,12 +93,12 @@ def add_user_skill(
 @router.delete("/user/{skill_id}")
 def delete_user_skill(
     skill_id: str,
-    user_id: str = "demo_user_01",
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     us = (
         db.query(UserSkill)
-        .filter(UserSkill.id == skill_id)
+        .filter(UserSkill.id == skill_id, UserSkill.user_id == user.id)
         .first()
     )
     if not us:

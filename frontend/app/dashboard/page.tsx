@@ -1,20 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import {
-  Sparkles,
   ArrowRight,
-  TrendingUp,
-  Briefcase,
   CheckCircle2,
-  AlertCircle,
-  Clock,
-  Compass,
   UploadCloud,
   ChevronRight,
-  MapPin,
-  Building,
 } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
 import { Button } from "@/components/ui/button";
@@ -23,13 +14,15 @@ import { ProgressBar, PanelSkeleton, ErrorState } from "@/components/shared/prim
 import { api } from "@/lib/api";
 import { useApi } from "@/hooks/use-api";
 import { useSession } from "@/lib/session";
-import type { DashboardData } from "@/types";
+import type { DashboardData, Opportunity, Roadmap } from "@/types";
 
 export default function DashboardPage() {
   const session = useSession();
   const { data, loading, error, reload, source } = useApi<DashboardData>(() => api.getDashboard());
+  const { data: roadmap } = useApi<Roadmap>(() => api.getRoadmap());
+  const { data: opportunities } = useApi<Opportunity[]>(() => api.getOpportunities("all"));
 
-  const displayName = session.name || data?.profile?.full_name || "Sahil";
+  const displayName = session?.full_name || data?.profile?.full_name || "there";
   const firstName = displayName.split(" ")[0];
 
   return (
@@ -77,11 +70,11 @@ export default function DashboardPage() {
                 Career Readiness
               </span>
               <div className="my-3 flex justify-center">
-                <ReadinessRing value={data.readiness_score || 72} size={135} stroke={10} label="Ready" />
+                <ReadinessRing value={data.readiness_score} size={135} stroke={10} label="Ready" />
               </div>
               <p className="text-center text-xs font-medium text-emerald-400 flex items-center justify-center gap-1">
                 <CheckCircle2 className="size-3.5" />
-                <span>You&apos;re on the right track!</span>
+                <span>{data.readiness_score}% role readiness</span>
               </p>
             </div>
 
@@ -99,22 +92,16 @@ export default function DashboardPage() {
               </div>
               <div className="my-2">
                 <h3 className="font-heading text-lg font-bold text-white">
-                  {data.target_role?.title || data.profile?.target_role_title || "Full Stack Developer"}
+                  {data.target_role?.title || data.profile?.target_role_title || "Choose a target role"}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {data.target_role?.category || "Software Engineering"}
+                  {data.target_role?.category || "Choose a career path"}
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5 pt-2">
-                <span className="px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/10 text-[11px] text-slate-300">
-                  Web Development
-                </span>
-                <span className="px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/10 text-[11px] text-slate-300">
-                  AI/ML
-                </span>
-                <span className="px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/10 text-[11px] text-slate-300">
-                  Cloud
-                </span>
+                {(data.target_role?.required_skills ?? []).slice(0, 3).map((skill) => (
+                  <span key={skill.skill_name} className="px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/10 text-[11px] text-slate-300">{skill.skill_name}</span>
+                ))}
               </div>
             </div>
 
@@ -131,7 +118,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <ul className="my-2 space-y-2">
-                {(data.top_skill_gaps || ["React", "Node.js", "Docker", "AWS", "System Design"]).slice(0, 5).map((skill, idx) => {
+                {(data.top_skill_gaps || []).slice(0, 5).map((skill, idx) => {
                   const colors = ["bg-rose-400", "bg-rose-400", "bg-amber-400", "bg-amber-400", "bg-blue-400"];
                   return (
                     <li key={skill} className="flex items-center gap-2 text-xs text-slate-200">
@@ -140,6 +127,7 @@ export default function DashboardPage() {
                     </li>
                   );
                 })}
+                {!data.top_skill_gaps?.length && <li className="text-xs text-muted-foreground">Run a skill-gap analysis to see priorities.</li>}
               </ul>
               <Link href="/skill-gap" className="text-[11px] text-muted-foreground hover:text-white flex items-center gap-1">
                 <span>Analyze all required skills</span>
@@ -155,7 +143,7 @@ export default function DashboardPage() {
               <div className="my-2 flex items-baseline justify-between">
                 <div>
                   <div className="font-heading text-4xl font-bold text-white tracking-tight">
-                    120+
+                    {opportunities?.length ?? "—"}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Matching jobs & internships
@@ -168,8 +156,8 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-slate-300">
-                <span>Direct match: 80%+</span>
-                <span className="text-emerald-400 font-semibold">14 roles</span>
+                <span>Matched to your recorded skills</span>
+                <span className="text-emerald-400 font-semibold">{opportunities?.length ?? 0} roles</span>
               </div>
             </div>
 
@@ -183,10 +171,10 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-heading text-base font-bold text-white">Your Roadmap</h3>
-                  <p className="text-xs text-muted-foreground">Phase 2 of 5</p>
+                  <p className="text-xs text-muted-foreground">{roadmap?.phases.length ?? 0} learning phases</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-white">48%</span>
+                  <span className="text-xs font-semibold text-white">{roadmap?.current_progress ?? data.roadmap_progress}%</span>
                   <Link href="/roadmap">
                     <span className="text-xs font-semibold text-primary hover:underline">
                       View Full Roadmap →
@@ -196,15 +184,11 @@ export default function DashboardPage() {
               </div>
 
               {/* Progress bar */}
-              <ProgressBar value={48} className="h-2" />
+              <ProgressBar value={roadmap?.current_progress ?? data.roadmap_progress} className="h-2" />
 
               {/* Milestone list matching mockup */}
               <div className="space-y-3 pt-2">
-                {[
-                  { id: 1, title: "Learn React Fundamentals", duration: "2 weeks", level: "Beginner", status: "completed" },
-                  { id: 2, title: "Build Projects", duration: "3 weeks", level: "Intermediate", status: "active" },
-                  { id: 3, title: "Learn Node.js + Express", duration: "3 weeks", level: "Intermediate", status: "pending" },
-                ].map((item) => (
+                {(roadmap?.phases ?? []).slice(0, 3).map((item) => (
                   <div
                     key={item.id}
                     className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] transition-all"
@@ -213,21 +197,21 @@ export default function DashboardPage() {
                       <div className={`size-7 rounded-full flex items-center justify-center text-xs font-bold ${
                         item.status === "completed"
                           ? "bg-primary text-white"
-                          : item.status === "active"
+                          : item.status === "in_progress"
                           ? "bg-primary/20 text-primary border border-primary/40 ring-2 ring-primary/20"
                           : "bg-white/10 text-muted-foreground"
                       }`}>
-                        {item.id}
+                        {item.phase_number}
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-white">{item.title}</p>
                         <p className="text-[11px] text-muted-foreground">
-                          {item.duration} • {item.level}
+                          {item.skills.length} skills • {item.milestone_projects.length} projects
                         </p>
                       </div>
                     </div>
                     <span className="text-[11px] text-slate-400 capitalize px-2 py-0.5 rounded-md bg-white/[0.04]">
-                      {item.status === "completed" ? "Completed" : item.status === "active" ? "In Progress" : "Upcoming"}
+                      {item.status === "completed" ? "Completed" : item.status === "in_progress" ? "In Progress" : "Upcoming"}
                     </span>
                   </div>
                 ))}
@@ -252,41 +236,16 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {/* Opportunity items matching mockup */}
+              {/* Live opportunities scored against your skills */}
               <div className="space-y-3">
-                {[
-                  {
-                    title: "Frontend Developer Intern",
-                    company: "Google",
-                    location: "Remote",
-                    match: 84,
-                    logoLetter: "G",
-                    logoBg: "bg-blue-600",
-                  },
-                  {
-                    title: "Full Stack Developer",
-                    company: "Microsoft",
-                    location: "Bengaluru",
-                    match: 78,
-                    logoLetter: "M",
-                    logoBg: "bg-emerald-600",
-                  },
-                  {
-                    title: "Software Engineer",
-                    company: "Amazon",
-                    location: "Hyderabad",
-                    match: 72,
-                    logoLetter: "A",
-                    logoBg: "bg-amber-600",
-                  },
-                ].map((opp, idx) => (
+                {(opportunities ?? []).slice(0, 3).map((opp) => (
                   <div
-                    key={idx}
+                    key={opp.id}
                     className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] hover:border-primary/30 transition-all flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`size-9 rounded-xl ${opp.logoBg} flex items-center justify-center font-bold text-sm text-white shrink-0 shadow-md`}>
-                        {opp.logoLetter}
+                      <div className="size-9 rounded-xl bg-primary/20 flex items-center justify-center font-bold text-sm text-white shrink-0 shadow-md">
+                        {opp.company.slice(0, 1).toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-white truncate">{opp.title}</p>
@@ -296,16 +255,17 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                      {opp.match}% Match
+                      {opp.match_score}% Match
                     </span>
                   </div>
                 ))}
+                {!opportunities?.length && <p className="rounded-xl border border-white/10 p-4 text-xs text-muted-foreground">No live opportunities loaded. Check provider configuration or open the opportunities page to retry.</p>}
               </div>
 
               <div className="pt-2">
                 <Link href="/opportunities">
                   <Button variant="outline" size="sm" className="w-full rounded-xl text-xs border-white/10 hover:bg-white/5 text-slate-300">
-                    <span>Explore 120+ Matched Jobs</span>
+                    <span>Browse matched opportunities</span>
                     <ArrowRight className="size-3.5 ml-1.5" />
                   </Button>
                 </Link>

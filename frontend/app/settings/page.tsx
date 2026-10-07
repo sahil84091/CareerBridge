@@ -1,17 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Settings,
-  ShieldCheck,
   Server,
-  Bell,
   RefreshCw,
   CheckCircle2,
-  AlertTriangle,
   RotateCcw,
-  Sparkles,
-  Wifi,
 } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
 import { Button } from "@/components/ui/button";
@@ -20,41 +16,50 @@ import { api, API_BASE_URL } from "@/lib/api";
 import { clearSession } from "@/lib/session";
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [apiStatus, setApiStatus] = useState<"checking" | "connected" | "disconnected">("checking");
-  const [salaryExpectation, setSalaryExpectation] = useState("$110,000 - $140,000");
-  const [remoteOnly, setRemoteOnly] = useState(true);
+  const [salaryExpectation, setSalaryExpectation] = useState("");
+  const [remoteOnly, setRemoteOnly] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
 
   const checkHealth = async () => {
     setApiStatus("checking");
     try {
-      const res = await api.health();
-      setApiStatus(res?.status === "healthy" ? "connected" : "disconnected");
+      const res = await api.ready();
+      setApiStatus(res?.status === "ready" ? "connected" : "disconnected");
     } catch {
       setApiStatus("disconnected");
     }
   };
 
   useEffect(() => {
-    api.health()
-      .then((res) => setApiStatus(res?.status === "healthy" ? "connected" : "disconnected"))
+    api.ready()
+      .then((res) => setApiStatus(res?.status === "ready" ? "connected" : "disconnected"))
       .catch(() => setApiStatus("disconnected"));
+    api.getPreferences().then(({ data }) => {
+      setSalaryExpectation(data.salary_expectation ?? "");
+      setRemoteOnly(data.remote_only);
+    }).catch(() => setSaveFeedback("Could not load your saved preferences."));
   }, []);
 
-  const handleResetData = () => {
+  const handleSignOut = async () => {
     setResetting(true);
-    clearSession();
-    setTimeout(() => {
+    try { await api.logout(); } finally {
+      clearSession();
+      router.replace("/login");
       setResetting(false);
-      window.location.reload();
-    }, 600);
+    }
   };
 
-  const handleSavePreferences = (e: React.FormEvent) => {
+  const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaveFeedback("Career preferences updated successfully.");
-    setTimeout(() => setSaveFeedback(null), 3000);
+    try {
+      await api.updatePreferences({ salary_expectation: salaryExpectation || null, remote_only: remoteOnly });
+      setSaveFeedback("Career preferences saved.");
+    } catch (error) {
+      setSaveFeedback(error instanceof Error ? error.message : "Could not save preferences.");
+    }
   };
 
   return (
@@ -114,11 +119,11 @@ export default function SettingsPage() {
                   ? "Live Backend Connected (FastAPI + PostgreSQL Engine)"
                   : apiStatus === "checking"
                   ? "Checking service health..."
-                  : "Autonomous Fallback Active (Zero-Latency Demo Dataset)"}
+                  : "Backend or database unavailable"}
               </span>
             </div>
             <span className="text-muted-foreground hidden sm:inline">
-              {apiStatus === "connected" ? "Status: HTTP 200 OK" : "All 10 pages remain 100% functional"}
+              {apiStatus === "connected" ? "Status: API and database ready" : "Check API and database configuration"}
             </span>
           </div>
         </div>
@@ -174,26 +179,26 @@ export default function SettingsPage() {
           </form>
         </div>
 
-        {/* Reset Demo State */}
+        {/* Sign out */}
         <div className="surface p-6 rounded-2xl border border-white/10 shadow-lg space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-heading text-base font-bold text-white flex items-center gap-2">
                 <RotateCcw className="size-4.5 text-amber-400" />
-                <span>Reset Demo Profile</span>
+                <span>Sign out</span>
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Clear all local modifications and re-initialize the pristine hackathon demo dataset.
+                End your current CareerBridge session on this device.
               </p>
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={handleResetData}
+              onClick={handleSignOut}
               disabled={resetting}
               className="rounded-xl border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-xs"
             >
-              <span>{resetting ? "Resetting..." : "Reset to Demo Defaults"}</span>
+              <span>{resetting ? "Signing out..." : "Sign out"}</span>
             </Button>
           </div>
         </div>

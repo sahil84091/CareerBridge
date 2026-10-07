@@ -1,34 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Compass,
   Search,
-  Check,
   ArrowRight,
   TrendingUp,
-  DollarSign,
-  Layers,
   Sparkles,
 } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
 import { Button } from "@/components/ui/button";
-import { MatchBadge, SkillChip, PanelSkeleton, ErrorState } from "@/components/shared/primitives";
+import { MatchBadge, PanelSkeleton, ErrorState } from "@/components/shared/primitives";
 import { api } from "@/lib/api";
 import { useApi } from "@/hooks/use-api";
-import type { CareerRole, Profile } from "@/types";
+import type { CareerRecommendation, CareerRole, Profile } from "@/types";
 
 const categories = ["All", "Software Engineering", "Data & AI", "Infrastructure", "Design", "Product"];
 
-export default function CareerExplorerPage() {
+function CareerExplorerContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: careers, loading, error, reload, source } = useApi<CareerRole[]>(() => api.getCareers());
   const { data: profile, reload: reloadProfile } = useApi<Profile>(() => api.getProfile());
+  const { data: recommendations } = useApi<CareerRecommendation[]>(() => api.recommendCareers());
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchQuery = searchParams.get("search") ?? "";
   const [settingRole, setSettingRole] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const currentTargetId = profile?.target_role_id || "role_fullstack";
+  const currentTargetId = profile?.target_role_id;
 
   const filteredRoles = (careers || []).filter((role) => {
     const matchesCat = selectedCategory === "All" || role.category === selectedCategory;
@@ -41,6 +43,7 @@ export default function CareerExplorerPage() {
 
   const handleSetTargetRole = async (role: CareerRole) => {
     setSettingRole(role.id);
+    setActionError(null);
     try {
       await api.updateProfile({
         target_role_id: role.id,
@@ -48,7 +51,7 @@ export default function CareerExplorerPage() {
       });
       reloadProfile();
     } catch (e) {
-      // Mock update
+      setActionError(e instanceof Error ? e.message : "Could not update target role.");
     } finally {
       setSettingRole(null);
     }
@@ -57,6 +60,7 @@ export default function CareerExplorerPage() {
   return (
     <AppShell dataSource={source}>
       <div className="space-y-8">
+        {actionError && <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{actionError}</p>}
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -104,7 +108,13 @@ export default function CareerExplorerPage() {
               type="text"
               placeholder="Search roles or skills..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                const params = new URLSearchParams(searchParams.toString());
+                if (e.target.value) params.set("search", e.target.value);
+                else params.delete("search");
+                const queryString = params.toString();
+                router.replace(`/career-explorer${queryString ? `?${queryString}` : ""}`, { scroll: false });
+              }}
               className="w-full h-10 pl-9 pr-3 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary"
             />
           </div>
@@ -123,8 +133,7 @@ export default function CareerExplorerPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRoles.map((role) => {
               const isTarget = currentTargetId === role.id;
-              // Mock candidate match score for demo realism
-              const matchEstimate = isTarget ? 72 : role.category === "Software Engineering" ? 78 : 55;
+              const matchEstimate = recommendations?.find((item) => item.role_id === role.id)?.match_score ?? 0;
 
               return (
                 <div
@@ -163,13 +172,13 @@ export default function CareerExplorerPage() {
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/[0.06] text-xs">
                       <div>
                         <span className="text-muted-foreground block text-[10px]">Avg. Salary</span>
-                        <span className="font-semibold text-white">{role.average_salary || "$110k - $150k"}</span>
+                        <span className="font-semibold text-white">{role.average_salary || "Not available"}</span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[10px]">Market Demand</span>
                         <span className="font-semibold text-emerald-400 flex items-center gap-1">
                           <TrendingUp className="size-3" />
-                          <span>{role.market_demand || "High"}</span>
+                          <span>{role.market_demand || "Not available"}</span>
                         </span>
                       </div>
                     </div>
@@ -228,4 +237,8 @@ export default function CareerExplorerPage() {
       </div>
     </AppShell>
   );
+}
+
+export default function CareerExplorerPage() {
+  return <Suspense fallback={<main className="min-h-screen bg-[#070B14]" />}><CareerExplorerContent /></Suspense>;
 }

@@ -9,6 +9,8 @@ class ResumeParserService:
     def extract_text_from_pdf(self, file_bytes: bytes) -> str:
         try:
             reader = PdfReader(io.BytesIO(file_bytes))
+            if len(reader.pages) > 100:
+                raise ValueError("PDF exceeds the 100 page limit")
             text_parts = []
             for page in reader.pages:
                 extracted = page.extract_text()
@@ -17,7 +19,7 @@ class ResumeParserService:
             return "\n".join(text_parts)
         except Exception as e:
             print(f"Error parsing PDF with pypdf: {e}")
-            return file_bytes.decode("utf-8", errors="ignore")
+            return ""
 
     def parse_resume_content(self, raw_text: str) -> Dict[str, Any]:
         """
@@ -32,9 +34,9 @@ class ResumeParserService:
         
         # 1. Extract contact details (email, candidate name)
         email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", raw_text)
-        email = email_match.group(0) if email_match else "candidate@example.com"
+        email = email_match.group(0) if email_match else None
 
-        name = "Candidate"
+        name = None
         if lines:
             # First non-trivial line usually is candidate name
             first_line = lines[0]
@@ -112,65 +114,44 @@ class ResumeParserService:
                 desc = parts[1].strip() if len(parts) > 1 else ""
                 current_project = {
                     "title": title,
-                    "description": desc or "Full stack application with responsive UI and backend services.",
-                    "technologies": ["React", "TypeScript", "Node.js"]
+                    "description": desc,
+                    "technologies": [skill["name"] for skill in self._extract_skills(desc)]
                 }
                 projects.append(current_project)
                 if len(projects) >= 4:
                     break
 
-        if not projects:
-            projects = [
-                {
-                    "title": "Cloud Resume & Career Portal",
-                    "description": "Full stack intelligence portal with Next.js, FastAPI, and PostgreSQL database.",
-                    "technologies": ["React", "FastAPI", "PostgreSQL", "Tailwind CSS"]
-                },
-                {
-                    "title": "E-Commerce REST Microservice",
-                    "description": "Scalable REST APIs for order management, inventory caching, and payment workflows.",
-                    "technologies": ["Python", "Docker", "REST API", "SQL"]
-                }
-            ]
-
         return projects
 
     def _extract_experience(self, text: str) -> List[Dict[str, Any]]:
         exp_list = []
-        # Fallback realistic experience if none parsed
-        exp_list.append({
-            "title": "Software Engineering Intern / Contributor",
-            "company": "TechSolutions Inc.",
-            "duration": "2024 - Present",
-            "description": "Engineered web user interfaces and integrated RESTful endpoints with React and Python.",
-            "skills_applied": ["JavaScript", "React", "Python", "Git"]
-        })
         return exp_list
 
     def _extract_education(self, text: str) -> List[Dict[str, Any]]:
-        degree = "B.S. in Computer Science"
-        institution = "State University / Institute of Technology"
-        grad_year = "2025"
-
-        if "bachelor" in text.lower() or "b.s." in text.lower() or "b.tech" in text.lower():
-            degree = "B.S. in Computer Science & Engineering"
-        if "master" in text.lower() or "m.s." in text.lower():
-            degree = "M.S. in Computer Science"
-
-        return [{
-            "degree": degree,
-            "institution": institution,
-            "graduation_year": grad_year
-        }]
+        lines = [line.strip(" •-\t") for line in text.splitlines() if line.strip()]
+        result = []
+        degree_terms = ("bachelor", "master", "associate", "b.s.", "b.a.", "b.tech", "m.s.", "m.a.", "ph.d", "doctorate")
+        for line in lines:
+            if any(term in line.lower() for term in degree_terms):
+                year = re.search(r"(?:19|20)\d{2}", line)
+                result.append({"degree": line, "institution": None, "graduation_year": year.group(0) if year else None})
+        return result
 
     def _extract_certifications(self, text: str) -> List[str]:
         certs = []
-        if "aws" in text.lower():
-            certs.append("AWS Certified Cloud Practitioner")
-        if "docker" in text.lower() or "kubernetes" in text.lower():
-            certs.append("Docker Essentials")
-        if not certs:
-            certs.append("Full Stack Web Development Specialization")
+        in_section = False
+        headings = {"certification", "certifications", "licenses", "licences"}
+        other_sections = {"education", "experience", "projects", "skills", "summary", "profile"}
+        for line in text.splitlines():
+            value = line.strip(" •-\t")
+            normalized = value.lower().rstrip(":")
+            if normalized in headings:
+                in_section = True
+                continue
+            if normalized in other_sections:
+                in_section = False
+            elif in_section and value:
+                certs.append(value)
         return certs
 
 

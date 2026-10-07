@@ -9,10 +9,6 @@ import {
   CircleSlash,
   ArrowRight,
   Sparkles,
-  Layers,
-  TrendingUp,
-  AlertTriangle,
-  Compass,
 } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
 import { Button } from "@/components/ui/button";
@@ -20,18 +16,20 @@ import { ReadinessRing } from "@/components/shared/readiness-ring";
 import { SkillChip, PanelSkeleton, ErrorState } from "@/components/shared/primitives";
 import { api } from "@/lib/api";
 import { useApi } from "@/hooks/use-api";
-import { demoCareers, skillDemand } from "@/lib/demo-data";
-import type { SkillGapAnalysis, CareerRole } from "@/types";
+import type { SkillGapAnalysis, CareerRole, Profile } from "@/types";
 
 export default function SkillGapPage() {
-  const [selectedRoleId, setSelectedRoleId] = useState("role_fullstack");
-  const { data, loading, error, reload, source } = useApi<SkillGapAnalysis>(
-    () => api.analyzeSkillGap(selectedRoleId),
-    [selectedRoleId]
-  );
+  const [selectedRoleId, setSelectedRoleId] = useState("");
   const { data: careers } = useApi<CareerRole[]>(() => api.getCareers());
-
-  const activeCareers = careers || demoCareers;
+  const { data: profile } = useApi<Profile>(() => api.getProfile());
+  const activeRoleId = careers?.some((role) => role.id === selectedRoleId)
+    ? selectedRoleId
+    : profile?.target_role_id || "";
+  const { data, loading, error, reload, source } = useApi<SkillGapAnalysis>(
+    () => api.analyzeSkillGap(activeRoleId || undefined),
+    [activeRoleId]
+  );
+  const activeCareers = careers ?? [];
 
   return (
     <AppShell dataSource={source}>
@@ -53,10 +51,11 @@ export default function SkillGapPage() {
           <div className="flex items-center gap-3">
             <span className="text-xs font-semibold text-muted-foreground">Target Role:</span>
             <select
-              value={selectedRoleId}
+              value={activeRoleId}
               onChange={(e) => setSelectedRoleId(e.target.value)}
               className="h-10 rounded-xl border border-white/10 bg-card/80 px-3 text-xs font-medium text-white focus:outline-none focus:border-primary cursor-pointer shadow-md"
             >
+              {!activeRoleId && <option value="">Choose a career role</option>}
               {activeCareers.map((c) => (
                 <option key={c.id} value={c.id} className="bg-[#090D1E] text-white">
                   {c.title}
@@ -86,7 +85,7 @@ export default function SkillGapPage() {
               <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                 
                 <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-                  <ReadinessRing value={data.readiness_score || 72} size={150} stroke={12} label="Readiness" />
+                  <ReadinessRing value={data.readiness_score} size={150} stroke={12} label="Readiness" />
                   <div className="space-y-2">
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold">
                       <Sparkles className="size-3 text-cyan-400" />
@@ -96,7 +95,7 @@ export default function SkillGapPage() {
                       {Math.round(data.readiness_score)}% Career Readiness
                     </h2>
                     <p className="text-xs sm:text-sm text-slate-300 max-w-md leading-relaxed">
-                      You meet {data.matched_count || data.matched_skills.length} of {data.total_required || 12} core requirements. Closing the top missing gaps will elevate your profile to 85%+ readiness.
+                      You meet {data.matched_count} of {data.total_required} core requirements. Use the prioritized skills below to plan your next learning steps.
                     </p>
                   </div>
                 </div>
@@ -130,7 +129,7 @@ export default function SkillGapPage() {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Verified competencies that align directly with industry criteria.
+                  Skills that align directly with this role&apos;s requirements.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-2">
                   {data.matched_skills.map((s) => (
@@ -216,8 +215,8 @@ export default function SkillGapPage() {
               </div>
 
               <div className="divide-y divide-white/[0.06] pt-2">
-                {(data.priority_skills || ["REST API", "Node.js", "React", "Docker", "AWS"]).map((skill, idx) => {
-                  const demand = skillDemand[skill] || 75;
+                {(data.priority_skills || []).map((skill, idx) => {
+                  const skillDetails = [...data.missing_skills, ...data.partial_skills].find((entry) => entry.name === skill);
                   return (
                     <div key={skill} className="py-3 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
@@ -227,16 +226,13 @@ export default function SkillGapPage() {
                         <div>
                           <p className="text-sm font-semibold text-white">{skill}</p>
                           <span className="text-[11px] text-muted-foreground">
-                            In {demand}% of {data.role_title} openings
+                            {skillDetails?.importance ?? "Recommended"} priority · weight {skillDetails?.weight ?? "—"}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="hidden sm:block text-right">
-                          <span className="text-xs font-semibold text-cyan-400">High Impact</span>
-                          <div className="w-24 h-1.5 rounded-full bg-white/10 overflow-hidden mt-1">
-                            <div className="h-full bg-cyan-400 rounded-full" style={{ width: `${demand}%` }} />
-                          </div>
+                          <span className="text-xs font-semibold text-cyan-400">{skillDetails?.importance ?? "Priority"}</span>
                         </div>
                         <Link href="/roadmap">
                           <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-white">
