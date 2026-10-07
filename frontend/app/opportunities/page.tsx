@@ -7,12 +7,8 @@ import {
   Search,
   MapPin,
   Building,
-  DollarSign,
   ArrowRight,
   ExternalLink,
-  CheckCircle2,
-  CircleSlash,
-  Filter,
 } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
 import { Button } from "@/components/ui/button";
@@ -34,11 +30,6 @@ export default function OpportunitiesPage() {
     [activeType]
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [appliedRoles, setAppliedRoles] = useState<Record<string, boolean>>({});
-
-  const handleApply = (oppId: string) => {
-    setAppliedRoles((prev) => ({ ...prev, [oppId]: true }));
-  };
 
   const filteredOpps = (data || []).filter((opp) => {
     const q = searchQuery.toLowerCase();
@@ -61,7 +52,7 @@ export default function OpportunitiesPage() {
               <span>Jobs & Internships</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Curated roles matched against your current competencies with match percentages.
+              Live job listings matched against your recorded skills.
             </p>
           </div>
           <Link href="/skill-gap">
@@ -115,7 +106,6 @@ export default function OpportunitiesPage() {
         ) : (
           <div className="space-y-4">
             {filteredOpps.map((opp) => {
-              const applied = !!appliedRoles[opp.id];
               return (
                 <div
                   key={opp.id}
@@ -195,24 +185,16 @@ export default function OpportunitiesPage() {
                     <span className="text-[11px] text-muted-foreground">
                       Closing {opp.missing_skills.slice(0, 2).join(", ")} will increase your ranking score.
                     </span>
-                    <Button
-                      variant={applied ? "outline" : "gradient"}
-                      size="sm"
-                      onClick={() => handleApply(opp.id)}
-                      className="rounded-xl text-xs font-semibold px-5"
-                    >
-                      {applied ? (
-                        <>
-                          <CheckCircle2 className="size-3.5 mr-1 text-emerald-400" />
-                          <span>Application Sent</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Apply with CareerBridge Profile</span>
+                    {opp.apply_url ? (
+                      <a href={opp.apply_url} target="_blank" rel="noreferrer">
+                        <Button variant="gradient" size="sm" className="rounded-xl text-xs font-semibold px-5">
+                          <span>Open job listing</span>
                           <ExternalLink className="size-3.5 ml-1" />
-                        </>
-                      )}
-                    </Button>
+                        </Button>
+                      </a>
+                    ) : (
+                      <Button variant="outline" size="sm" disabled className="rounded-xl text-xs">No application link</Button>
+                    )}
                   </div>
 
                 </div>

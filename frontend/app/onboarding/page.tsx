@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ArrowRight, ArrowLeft, Sparkles, Compass, Briefcase, GraduationCap, Code } from "lucide-react";
+import { Check, ArrowRight, ArrowLeft, Sparkles, Compass, GraduationCap, Code } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { demoCareers } from "@/lib/demo-data";
+import { useApi } from "@/hooks/use-api";
+import type { CareerRole, Profile, UserSkillItem } from "@/types";
 import { cn } from "@/lib/utils";
 
 const popularSkills = [
@@ -19,49 +20,72 @@ const popularSkills = [
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [currentTitle, setCurrentTitle] = useState("CS Student / Junior Developer");
-  const [educationLevel, setEducationLevel] = useState("Bachelor's Degree");
-  const [experienceLevel, setExperienceLevel] = useState("Entry Level");
-  const [selectedRole, setSelectedRole] = useState("role_fullstack");
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([
-    "JavaScript", "HTML", "CSS", "Git", "React", "TypeScript"
-  ]);
+  const [currentTitleDraft, setCurrentTitleDraft] = useState<string | null>(null);
+  const [educationLevelDraft, setEducationLevelDraft] = useState<string | null>(null);
+  const [experienceLevelDraft, setExperienceLevelDraft] = useState<string | null>(null);
+  const [selectedRoleDraft, setSelectedRoleDraft] = useState<string | null>(null);
+  const [selectedSkillsDraft, setSelectedSkillsDraft] = useState<string[] | null>(null);
   const [customSkill, setCustomSkill] = useState("");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const { data: careers, loading: careersLoading, error: careersError, reload: reloadCareers } =
+    useApi<CareerRole[]>(() => api.getCareers());
+  const { data: profile, loading: profileLoading, error: profileError, reload: reloadProfile } =
+    useApi<Profile>(() => api.getProfile());
+  const { data: userSkills, loading: skillsLoading, error: skillsError, reload: reloadSkills } =
+    useApi<UserSkillItem[]>(() => api.getUserSkills());
+
+  const hydrated = Boolean(profile && userSkills);
+  const currentTitle = currentTitleDraft ?? profile?.current_title ?? "";
+  const educationLevel = educationLevelDraft ?? profile?.education_level ?? "";
+  const experienceLevel = experienceLevelDraft ?? profile?.experience_level ?? "";
+  const selectedRole = selectedRoleDraft ?? profile?.target_role_id ?? "";
+  const selectedSkills = selectedSkillsDraft ?? userSkills?.map((skill) => skill.skill_name) ?? [];
+  const selectedRoleId = careers?.some((role) => role.id === selectedRole) ? selectedRole : "";
+  const loadError = profileError || skillsError;
+  const loadingSavedData = profileLoading || skillsLoading || !hydrated;
 
   const toggleSkill = (skill: string) => {
-    setSelectedSkills((prev) =>
-      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    setSelectedSkillsDraft((prev) =>
+      (prev ?? userSkills?.map((item) => item.skill_name) ?? []).includes(skill)
+        ? (prev ?? userSkills?.map((item) => item.skill_name) ?? []).filter((s) => s !== skill)
+        : [...(prev ?? userSkills?.map((item) => item.skill_name) ?? []), skill]
     );
   };
 
   const addCustomSkill = () => {
     if (customSkill.trim() && !selectedSkills.includes(customSkill.trim())) {
-      setSelectedSkills([...selectedSkills, customSkill.trim()]);
+      setSelectedSkillsDraft([...selectedSkills, customSkill.trim()]);
       setCustomSkill("");
     }
   };
 
   const handleFinish = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
-      const roleObj = demoCareers.find((c) => c.id === selectedRole);
+      const roleObj = careers?.find((c) => c.id === selectedRoleId);
+      if (!roleObj) throw new Error("Choose a career role before continuing.");
       await api.updateProfile({
-        current_title: currentTitle,
+        current_title: currentTitle.trim(),
         education_level: educationLevel,
         experience_level: experienceLevel,
-        target_role_id: selectedRole,
-        target_role_title: roleObj?.title || "Full Stack Developer",
+        target_role_id: selectedRoleId,
+        target_role_title: roleObj.title,
       });
-      // Add selected skills
-      for (const skill of selectedSkills) {
-        await api.addUserSkill(skill, "Moderate").catch(() => {});
-      }
+      const selectedNames = new Set(selectedSkills.map((skill) => skill.trim().toLowerCase()));
+      await Promise.all((userSkills ?? [])
+        .filter((skill) => !selectedNames.has(skill.skill_name.toLowerCase()))
+        .map((skill) => api.deleteUserSkill(skill.id)));
+      const existingNames = new Set((userSkills ?? []).map((skill) => skill.skill_name.toLowerCase()));
+      await Promise.all(selectedSkills
+        .filter((skill) => !existingNames.has(skill.trim().toLowerCase()))
+        .map((skill) => api.addUserSkill(skill.trim(), "Moderate")));
+      router.push("/dashboard");
     } catch (e) {
-      // Ignore errors in mock mode
+      setSaveError(e instanceof Error ? e.message : "Could not save your onboarding information.");
     } finally {
       setSaving(false);
-      router.push("/dashboard");
     }
   };
 
@@ -83,6 +107,17 @@ export default function OnboardingPage() {
 
       {/* Main Form Content */}
       <main className="max-w-2xl mx-auto w-full my-auto py-8">
+        {saveError && <p role="alert" className="mb-4 text-sm text-red-400">{saveError}</p>}
+        {loadingSavedData && (loadError ? (
+          <div role="alert" className="mb-4 text-sm text-red-400">
+            <p>Could not load your saved profile and skills: {loadError}</p>
+            <Button type="button" variant="outline" onClick={() => { reloadProfile(); reloadSkills(); }} className="mt-3">
+              Retry loading
+            </Button>
+          </div>
+        ) : (
+          <p role="status" className="mb-4 text-sm text-muted-foreground">Loading your saved profile and skills…</p>
+        ))}
         
         {/* Step 1: Background & Education */}
         {step === 1 && (
@@ -105,7 +140,8 @@ export default function OnboardingPage() {
                 </label>
                 <Input
                   value={currentTitle}
-                  onChange={(e) => setCurrentTitle(e.target.value)}
+                  onChange={(e) => setCurrentTitleDraft(e.target.value)}
+                  disabled={!hydrated}
                   placeholder="e.g. Student, Junior Software Engineer, Bootcamp Grad"
                 />
               </div>
@@ -116,9 +152,11 @@ export default function OnboardingPage() {
                 </label>
                 <select
                   value={educationLevel}
-                  onChange={(e) => setEducationLevel(e.target.value)}
+                  onChange={(e) => setEducationLevelDraft(e.target.value)}
+                  disabled={!hydrated}
                   className="w-full h-11 rounded-xl border border-input bg-card/60 px-3.5 text-sm text-foreground focus:outline-none focus:border-primary/50"
                 >
+                  <option value="">Select education level</option>
                   <option value="High School">High School</option>
                   <option value="Associate Degree">Associate Degree</option>
                   <option value="Bachelor's Degree">Bachelor&apos;s Degree</option>
@@ -136,7 +174,8 @@ export default function OnboardingPage() {
                     <button
                       key={lvl}
                       type="button"
-                      onClick={() => setExperienceLevel(lvl)}
+                      onClick={() => setExperienceLevelDraft(lvl)}
+                      disabled={!hydrated}
                       className={cn(
                         "p-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer",
                         experienceLevel === lvl
@@ -152,7 +191,7 @@ export default function OnboardingPage() {
             </div>
 
             <div className="pt-4 flex justify-end">
-              <Button variant="gradient" onClick={() => setStep(2)} className="rounded-xl px-6">
+              <Button variant="gradient" onClick={() => setStep(2)} disabled={!hydrated} className="rounded-xl px-6">
                 <span>Continue to Target Role</span>
                 <ArrowRight className="size-4 ml-2" />
               </Button>
@@ -175,24 +214,27 @@ export default function OnboardingPage() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 max-h-80 overflow-y-auto pr-1">
-              {demoCareers.map((c) => (
+              {(careers ?? []).map((c) => (
                 <div
                   key={c.id}
-                  onClick={() => setSelectedRole(c.id)}
+                  onClick={() => setSelectedRoleDraft(c.id)}
                   className={cn(
                     "p-4 rounded-xl border cursor-pointer transition-all text-left",
-                    selectedRole === c.id
+                    selectedRoleId === c.id
                       ? "border-primary bg-primary/20 shadow-md ring-1 ring-primary"
                       : "border-white/10 bg-white/[0.02] hover:bg-white/5 hover:border-white/20"
                   )}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-white">{c.title}</span>
-                    {selectedRole === c.id && <Check className="size-4 text-primary" />}
+                    {selectedRoleId === c.id && <Check className="size-4 text-primary" />}
                   </div>
                   <span className="text-[11px] text-muted-foreground block mt-1">{c.average_salary}</span>
                 </div>
               ))}
+              {careersLoading && <p className="text-sm text-muted-foreground">Loading career paths…</p>}
+              {careersError && <p role="alert" className="text-sm text-red-400">Could not load career paths. <button type="button" onClick={reloadCareers} className="underline">Retry</button></p>}
+              {!careersLoading && !careers?.length && <p className="text-sm text-muted-foreground">No career paths are available.</p>}
             </div>
 
             <div className="pt-4 flex items-center justify-between">
@@ -200,7 +242,7 @@ export default function OnboardingPage() {
                 <ArrowLeft className="size-4 mr-2" />
                 <span>Back</span>
               </Button>
-              <Button variant="gradient" onClick={() => setStep(3)} className="rounded-xl px-6">
+              <Button variant="gradient" onClick={() => setStep(3)} disabled={!selectedRoleId || careersLoading} className="rounded-xl px-6">
                 <span>Continue to Skills</span>
                 <ArrowRight className="size-4 ml-2" />
               </Button>
@@ -231,6 +273,7 @@ export default function OnboardingPage() {
                     key={s}
                     type="button"
                     onClick={() => toggleSkill(s)}
+                    disabled={!hydrated}
                     className={cn(
                       "px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
                       selected
@@ -251,10 +294,11 @@ export default function OnboardingPage() {
                 placeholder="Add other skill (e.g. Next.js, GraphQL)"
                 value={customSkill}
                 onChange={(e) => setCustomSkill(e.target.value)}
+                disabled={!hydrated}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomSkill())}
                 className="h-10 text-xs"
               />
-              <Button type="button" variant="outline" onClick={addCustomSkill} className="h-10 text-xs">
+              <Button type="button" variant="outline" onClick={addCustomSkill} disabled={!hydrated} className="h-10 text-xs">
                 Add
               </Button>
             </div>
@@ -267,7 +311,7 @@ export default function OnboardingPage() {
               <Button
                 variant="gradient"
                 onClick={handleFinish}
-                disabled={saving}
+                disabled={saving || !hydrated || !selectedRoleId}
                 className="rounded-xl px-7 shadow-lg shadow-blue-500/25"
               >
                 <Sparkles className="size-4 mr-2" />

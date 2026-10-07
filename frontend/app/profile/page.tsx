@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import {
   User,
   Mail,
@@ -11,23 +10,18 @@ import {
   Trash2,
   CheckCircle2,
   Save,
-  Sparkles,
   Edit2,
   X,
-  Globe,
-  Share2,
 } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SkillChip, PanelSkeleton, ErrorState } from "@/components/shared/primitives";
+import { PanelSkeleton, ErrorState } from "@/components/shared/primitives";
 import { api } from "@/lib/api";
 import { useApi } from "@/hooks/use-api";
-import { useSession } from "@/lib/session";
 import type { Profile, UserSkillItem } from "@/types";
 
 export default function ProfilePage() {
-  const session = useSession();
   const { data: profile, loading, error, reload: reloadProfile, source } = useApi<Profile>(() =>
     api.getProfile()
   );
@@ -41,9 +35,11 @@ export default function ProfilePage() {
   const [newSkillName, setNewSkillName] = useState("");
   const [newSkillProficiency, setNewSkillProficiency] = useState("Moderate");
   const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleSaveProfile = async () => {
     setSaving(true);
+    setActionError(null);
     try {
       await api.updateProfile({
         bio: bio || profile?.bio,
@@ -52,8 +48,7 @@ export default function ProfilePage() {
       reloadProfile();
       setIsEditing(false);
     } catch (e) {
-      // Mock update
-      setIsEditing(false);
+      setActionError(e instanceof Error ? e.message : "Could not save profile.");
     } finally {
       setSaving(false);
     }
@@ -63,26 +58,29 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!newSkillName.trim()) return;
     try {
+      setActionError(null);
       await api.addUserSkill(newSkillName.trim(), newSkillProficiency);
       setNewSkillName("");
       reloadSkills();
     } catch (e) {
-      // Ignore in mock
+      setActionError(e instanceof Error ? e.message : "Could not add skill.");
     }
   };
 
   const handleDeleteSkill = async (id: string) => {
     try {
+      setActionError(null);
       await api.deleteUserSkill(id);
       reloadSkills();
     } catch (e) {
-      // Ignore in mock
+      setActionError(e instanceof Error ? e.message : "Could not remove skill.");
     }
   };
 
   return (
     <AppShell dataSource={source}>
       <div className="space-y-8">
+        {actionError && <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{actionError}</p>}
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -92,7 +90,7 @@ export default function ProfilePage() {
               <span>User Profile & Competencies</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Manage your personal career identity, education credentials, and verified skill set.
+              Manage your career profile, education details, and recorded skills.
             </p>
           </div>
           <Button
@@ -141,14 +139,14 @@ export default function ProfilePage() {
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-3">
                     <h2 className="font-heading text-2xl font-bold text-white">
-                      {profile.full_name || "Sahil Kumar"}
+                      {profile.full_name}
                     </h2>
                     <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/20 text-blue-200 border border-primary/30 font-semibold">
-                      {profile.experience_level || "Entry Level"}
+                      {profile.experience_level || "Experience not provided"}
                     </span>
                   </div>
                   <p className="text-sm text-slate-300 font-medium">
-                    {profile.current_title || "CS Student · Junior Developer"}
+                    {profile.current_title || "Current title not provided"}
                   </p>
                   <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
                     <span className="flex items-center gap-1.5">
@@ -157,11 +155,11 @@ export default function ProfilePage() {
                     </span>
                     <span className="flex items-center gap-1.5">
                       <GraduationCap className="size-3.5 text-cyan-400" />
-                      <span>{profile.education_level || "Bachelor's Degree"}</span>
+                      <span>{profile.education_level || "Education not provided"}</span>
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Briefcase className="size-3.5 text-violet-400" />
-                      <span>Target: {profile.target_role_title || "Full Stack Developer"}</span>
+                      <span>Target: {profile.target_role_title || "Choose a target role"}</span>
                     </span>
                   </div>
                 </div>

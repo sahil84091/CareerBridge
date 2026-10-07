@@ -344,7 +344,7 @@ export default function LandingPage() {
                   Full Stack Developer Benchmark
                 </h3>
                 <p className="text-sm text-slate-300 leading-relaxed">
-                  Based on standard demo profile analysis: 12 matched skills, 4 partial competencies, and 3 priority gaps identified to reach 85%+ readiness.
+                  Compare your current skills with the requirements of your target role and see what to build next.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-2">
                   <SkillChip name="JavaScript" state="strong" />

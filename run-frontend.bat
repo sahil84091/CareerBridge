@@ -12,7 +12,7 @@ if not exist "%ProgramFiles%\nodejs\npm.cmd" (
   pause
   exit /b 1
 )
-echo Starting CareerBridge. Open http://localhost:3002 in your browser.
-call "%ProgramFiles%\nodejs\npm.cmd" run dev -- --hostname 0.0.0.0 --port 3002
+echo Starting CareerBridge. Open http://localhost:3000 in your browser.
+call "%ProgramFiles%\nodejs\npm.cmd" run dev -- --hostname 0.0.0.0 --port 3000
 if errorlevel 1 echo The frontend stopped with an error. Check the message above.
 pause

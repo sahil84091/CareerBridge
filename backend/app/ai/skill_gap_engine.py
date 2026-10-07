@@ -7,7 +7,7 @@ class SkillGapEngine:
         self,
         user_skills: List[Dict[str, Any]],  # list of {name, proficiency}
         role_skills: List[Dict[str, Any]],  # list of {skill_name, importance, weight}
-        role_title: str = "Full Stack Developer",
+        role_title: str,
     ) -> Dict[str, Any]:
         """
         Calculates:

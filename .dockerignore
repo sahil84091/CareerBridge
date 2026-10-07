@@ -1,0 +1,8 @@
+.git
+.tmp
+**/node_modules
+**/.next
+**/__pycache__
+**/*.pyc
+.env
+careerbridge.db

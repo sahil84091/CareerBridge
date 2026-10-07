@@ -14,8 +14,8 @@ interface UseApiState<T> {
 
 /**
  * Minimal client data hook: loading / error / data / source + reload.
- * API calls already fall back to demo data, so `error` is reserved for
- * genuinely unexpected failures.
+ * API errors are surfaced to the page so stale or demo values are never
+ * presented as persisted user data.
  */
 export function useApi<T>(fetcher: () => Promise<ApiResult<T>>, deps: unknown[] = []): UseApiState<T> {
   const [data, setDataState] = useState<T | null>(null);
