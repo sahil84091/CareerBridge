@@ -1,0 +1,74 @@
+{
+  "opportunities": [
+    {
+      "id": "opp_1",
+      "title": "Junior Full Stack Engineer",
+      "company": "Vanguard Tech Labs",
+      "location": "San Francisco, CA (Hybrid)",
+      "type": "Full-time",
+      "salary_range": "$90,000 - $115,000 / year",
+      "experience_level": "Entry to Mid",
+      "description": "Join our product engineering pod to build modern web applications using React, TypeScript, and Python FastAPI backend services.",
+      "required_skills": ["JavaScript", "TypeScript", "React", "Python", "REST API", "Git"],
+      "preferred_skills": ["Docker", "PostgreSQL"],
+      "posted_date": "2 days ago",
+      "apply_url": "https://careers.example.com/opp_1"
+    },
+    {
+      "id": "opp_2",
+      "title": "Software Engineering Intern - Web & Cloud",
+      "company": "Nexus Cloud Systems",
+      "location": "Remote (US)",
+      "type": "Internship",
+      "salary_range": "$42 - $50 / hour",
+      "experience_level": "Student / Intern",
+      "description": "Exciting 12-week summer internship helping build cloud dashboard workflows, API integrations, and developer tooling.",
+      "required_skills": ["JavaScript", "React", "HTML", "CSS", "Git"],
+      "preferred_skills": ["Node.js", "Docker"],
+      "posted_date": "1 day ago",
+      "apply_url": "https://careers.example.com/opp_2"
+    },
+    {
+      "id": "opp_3",
+      "title": "Full Stack Developer",
+      "company": "Aura Health AI",
+      "location": "New York, NY (Remote friendly)",
+      "type": "Full-time",
+      "salary_range": "$115,000 - $140,000 / year",
+      "experience_level": "Mid-level",
+      "description": "Empowering clinician decision workflows with real-time analytics. Seeking full stack talent proficient with React, Node.js, and PostgreSQL.",
+      "required_skills": ["React", "TypeScript", "Node.js", "PostgreSQL", "REST API", "Docker"],
+      "preferred_skills": ["AWS", "Redis"],
+      "posted_date": "3 days ago",
+      "apply_url": "https://careers.example.com/opp_3"
+    },
+    {
+      "id": "opp_4",
+      "title": "AI Application Developer",
+      "company": "Cognitive Bridge AI",
+      "location": "Austin, TX (Remote)",
+      "type": "Full-time",
+      "salary_range": "$125,000 - $155,000 / year",
+      "experience_level": "Mid-level",
+      "description": "Build cutting-edge GenAI applications, LangChain agent loops, and reactive web interfaces integrating LLM APIs.",
+      "required_skills": ["Python", "Large Language Models", "FastAPI", "React", "Git"],
+      "preferred_skills": ["PyTorch", "Docker"],
+      "posted_date": "Just now",
+      "apply_url": "https://careers.example.com/opp_4"
+    },
+    {
+      "id": "opp_5",
+      "title": "Frontend Developer (React / Next.js)",
+      "company": "Streamline UI",
+      "location": "Seattle, WA (Hybrid)",
+      "type": "Full-time",
+      "salary_range": "$100,000 - $125,000 / year",
+      "experience_level": "Entry to Mid",
+      "description": "Craft pixel-perfect, accessible customer journeys. Deep focus on design systems, responsive layouts, and performance.",
+      "required_skills": ["JavaScript", "TypeScript", "React", "Next.js", "Tailwind CSS", "HTML", "CSS"],
+      "preferred_skills": ["REST API", "Git"],
+      "posted_date": "4 days ago",
+      "apply_url": "https://careers.example.com/opp_5"
+    }
+  ]
+}

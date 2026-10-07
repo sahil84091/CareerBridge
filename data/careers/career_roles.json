@@ -1,0 +1,99 @@
+{
+  "roles": [
+    {
+      "id": "role_fullstack",
+      "title": "Full Stack Developer",
+      "category": "Software Engineering",
+      "description": "Architects and implements complete web applications spanning responsive frontend interfaces, resilient backend APIs, and database persistence layers.",
+      "average_salary": "$105,000 - $145,000",
+      "market_demand": "High",
+      "required_skills": [
+        {"skill_name": "JavaScript", "importance": "Core", "weight": 1.0},
+        {"skill_name": "TypeScript", "importance": "Core", "weight": 0.95},
+        {"skill_name": "React", "importance": "Core", "weight": 0.95},
+        {"skill_name": "HTML", "importance": "Core", "weight": 0.8},
+        {"skill_name": "CSS", "importance": "Core", "weight": 0.8},
+        {"skill_name": "Node.js", "importance": "Core", "weight": 0.9},
+        {"skill_name": "REST API", "importance": "Core", "weight": 0.9},
+        {"skill_name": "PostgreSQL", "importance": "Core", "weight": 0.85},
+        {"skill_name": "Git", "importance": "Core", "weight": 0.85},
+        {"skill_name": "Docker", "importance": "Important", "weight": 0.75},
+        {"skill_name": "AWS", "importance": "Important", "weight": 0.7},
+        {"skill_name": "Tailwind CSS", "importance": "Bonus", "weight": 0.6}
+      ]
+    },
+    {
+      "id": "role_frontend",
+      "title": "Frontend Engineer",
+      "category": "Software Engineering",
+      "description": "Specializes in building high-performance, accessible, and delightful interactive user interfaces with modern client-side architectures.",
+      "average_salary": "$95,000 - $135,000",
+      "market_demand": "High",
+      "required_skills": [
+        {"skill_name": "JavaScript", "importance": "Core", "weight": 1.0},
+        {"skill_name": "TypeScript", "importance": "Core", "weight": 1.0},
+        {"skill_name": "React", "importance": "Core", "weight": 1.0},
+        {"skill_name": "Next.js", "importance": "Core", "weight": 0.9},
+        {"skill_name": "HTML", "importance": "Core", "weight": 0.9},
+        {"skill_name": "CSS", "importance": "Core", "weight": 0.9},
+        {"skill_name": "Tailwind CSS", "importance": "Important", "weight": 0.8},
+        {"skill_name": "REST API", "importance": "Important", "weight": 0.75},
+        {"skill_name": "Git", "importance": "Core", "weight": 0.85}
+      ]
+    },
+    {
+      "id": "role_backend",
+      "title": "Backend Engineer",
+      "category": "Software Engineering",
+      "description": "Designs scalable distributed systems, high-throughput microservices, data architectures, and secure business APIs.",
+      "average_salary": "$110,000 - $150,000",
+      "market_demand": "Very High",
+      "required_skills": [
+        {"skill_name": "Python", "importance": "Core", "weight": 0.95},
+        {"skill_name": "FastAPI", "importance": "Core", "weight": 0.9},
+        {"skill_name": "Node.js", "importance": "Core", "weight": 0.9},
+        {"skill_name": "REST API", "importance": "Core", "weight": 1.0},
+        {"skill_name": "PostgreSQL", "importance": "Core", "weight": 0.95},
+        {"skill_name": "SQL", "importance": "Core", "weight": 0.9},
+        {"skill_name": "Docker", "importance": "Core", "weight": 0.85},
+        {"skill_name": "Redis", "importance": "Important", "weight": 0.8},
+        {"skill_name": "AWS", "importance": "Important", "weight": 0.75},
+        {"skill_name": "Git", "importance": "Core", "weight": 0.85}
+      ]
+    },
+    {
+      "id": "role_ai_engineer",
+      "title": "AI / ML Engineer",
+      "category": "Artificial Intelligence",
+      "description": "Constructs intelligent systems leveraging deep learning, LLMs, fine-tuning, RAG pipelines, and scalable inference infrastructure.",
+      "average_salary": "$125,000 - $175,000",
+      "market_demand": "Extremely High",
+      "required_skills": [
+        {"skill_name": "Python", "importance": "Core", "weight": 1.0},
+        {"skill_name": "Machine Learning", "importance": "Core", "weight": 0.95},
+        {"skill_name": "PyTorch", "importance": "Core", "weight": 0.9},
+        {"skill_name": "Large Language Models", "importance": "Core", "weight": 0.95},
+        {"skill_name": "FastAPI", "importance": "Important", "weight": 0.8},
+        {"skill_name": "Docker", "importance": "Important", "weight": 0.75},
+        {"skill_name": "SQL", "importance": "Important", "weight": 0.75},
+        {"skill_name": "Git", "importance": "Core", "weight": 0.8}
+      ]
+    },
+    {
+      "id": "role_devops",
+      "title": "DevOps & Cloud Engineer",
+      "category": "Infrastructure",
+      "description": "Manages automated CI/CD deployment pipelines, container orchestration, cloud resources, and reliability engineering.",
+      "average_salary": "$115,000 - $160,000",
+      "market_demand": "High",
+      "required_skills": [
+        {"skill_name": "Docker", "importance": "Core", "weight": 1.0},
+        {"skill_name": "Kubernetes", "importance": "Core", "weight": 0.95},
+        {"skill_name": "AWS", "importance": "Core", "weight": 0.95},
+        {"skill_name": "CI/CD", "importance": "Core", "weight": 0.9},
+        {"skill_name": "Python", "importance": "Important", "weight": 0.75},
+        {"skill_name": "Git", "importance": "Core", "weight": 0.85}
+      ]
+    }
+  ]
+}

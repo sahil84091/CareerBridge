@@ -1,0 +1,228 @@
+{
+  "skills": [
+    {
+      "id": "skill_js",
+      "name": "JavaScript",
+      "category": "Frontend",
+      "aliases": ["js", "es6", "ecmascript", "vanilla js", "modern javascript"],
+      "description": "Core dynamic programming language of the web",
+      "importance": "High"
+    },
+    {
+      "id": "skill_ts",
+      "name": "TypeScript",
+      "category": "Frontend",
+      "aliases": ["ts", "typescript lang"],
+      "description": "Typed superset of JavaScript compiling to plain JavaScript",
+      "importance": "High"
+    },
+    {
+      "id": "skill_react",
+      "name": "React",
+      "category": "Frontend",
+      "aliases": ["reactjs", "react.js", "react native core"],
+      "description": "Declarative component-based frontend library",
+      "importance": "High"
+    },
+    {
+      "id": "skill_nextjs",
+      "name": "Next.js",
+      "category": "Frontend",
+      "aliases": ["next", "nextjs", "next.js framework"],
+      "description": "Fullstack React framework with SSR and App Router",
+      "importance": "High"
+    },
+    {
+      "id": "skill_html",
+      "name": "HTML",
+      "category": "Frontend",
+      "aliases": ["html5", "semantic html"],
+      "description": "Standard markup language for documents designed to be displayed in a web browser",
+      "importance": "High"
+    },
+    {
+      "id": "skill_css",
+      "name": "CSS",
+      "category": "Frontend",
+      "aliases": ["css3", "vanilla css", "cascading style sheets"],
+      "description": "Style sheet language used for describing presentation",
+      "importance": "High"
+    },
+    {
+      "id": "skill_tailwind",
+      "name": "Tailwind CSS",
+      "category": "Frontend",
+      "aliases": ["tailwind", "tailwindcss"],
+      "description": "Utility-first CSS framework for rapid UI development",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_python",
+      "name": "Python",
+      "category": "Backend",
+      "aliases": ["py", "python3", "python 3"],
+      "description": "High-level programming language known for readability and vast ecosystem",
+      "importance": "High"
+    },
+    {
+      "id": "skill_fastapi",
+      "name": "FastAPI",
+      "category": "Backend",
+      "aliases": ["fast-api", "fast api"],
+      "description": "Modern, high-performance web framework for building APIs with Python",
+      "importance": "High"
+    },
+    {
+      "id": "skill_nodejs",
+      "name": "Node.js",
+      "category": "Backend",
+      "aliases": ["node", "nodejs", "node js"],
+      "description": "Asynchronous event-driven JavaScript runtime",
+      "importance": "High"
+    },
+    {
+      "id": "skill_express",
+      "name": "Express.js",
+      "category": "Backend",
+      "aliases": ["express", "expressjs"],
+      "description": "Fast, unopinionated, minimalist web framework for Node.js",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_rest",
+      "name": "REST API",
+      "category": "Backend",
+      "aliases": ["rest", "restful", "rest apis", "restful api", "restful apis"],
+      "description": "Architectural style for designing networked applications",
+      "importance": "High"
+    },
+    {
+      "id": "skill_graphql",
+      "name": "GraphQL",
+      "category": "Backend",
+      "aliases": ["gql", "graphql api"],
+      "description": "Query language for APIs and runtime for fulfilling queries with data",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_postgresql",
+      "name": "PostgreSQL",
+      "category": "Database",
+      "aliases": ["postgres", "pgsql", "postgresql db"],
+      "description": "Powerful, open source object-relational database system",
+      "importance": "High"
+    },
+    {
+      "id": "skill_sql",
+      "name": "SQL",
+      "category": "Database",
+      "aliases": ["structured query language", "rdbms queries", "mysql", "sqlite"],
+      "description": "Domain-specific language used in programming and managing relational databases",
+      "importance": "High"
+    },
+    {
+      "id": "skill_mongodb",
+      "name": "MongoDB",
+      "category": "Database",
+      "aliases": ["mongo", "nosql mongodb", "mongoose"],
+      "description": "Source-available, cross-platform, document-oriented database program",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_redis",
+      "name": "Redis",
+      "category": "Database",
+      "aliases": ["redis cache", "in-memory cache"],
+      "description": "In-memory data structure store used as a database, cache, and message broker",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_git",
+      "name": "Git",
+      "category": "DevOps",
+      "aliases": ["github", "gitlab", "version control", "git cli"],
+      "description": "Distributed version control system that tracks changes in source code",
+      "importance": "High"
+    },
+    {
+      "id": "skill_docker",
+      "name": "Docker",
+      "category": "DevOps",
+      "aliases": ["containerization", "containers", "docker compose"],
+      "description": "Platform for developing, shipping, and running applications in containers",
+      "importance": "High"
+    },
+    {
+      "id": "skill_kubernetes",
+      "name": "Kubernetes",
+      "category": "DevOps",
+      "aliases": ["k8s", "kube"],
+      "description": "Open-source container orchestration system",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_aws",
+      "name": "AWS",
+      "category": "Cloud",
+      "aliases": ["amazon web services", "s3", "ec2", "lambda"],
+      "description": "Comprehensive, evolving cloud computing platform by Amazon",
+      "importance": "High"
+    },
+    {
+      "id": "skill_cicd",
+      "name": "CI/CD",
+      "category": "DevOps",
+      "aliases": ["continuous integration", "github actions", "gitlab ci", "jenkins"],
+      "description": "Continuous Integration and Continuous Deployment pipeline practices",
+      "importance": "Medium"
+    },
+    {
+      "id": "skill_ml",
+      "name": "Machine Learning",
+      "category": "AI/ML",
+      "aliases": ["ml", "scikit-learn", "sklearn", "supervised learning"],
+      "description": "Study of computer algorithms that improve automatically through experience and data",
+      "importance": "High"
+    },
+    {
+      "id": "skill_pytorch",
+      "name": "PyTorch",
+      "category": "AI/ML",
+      "aliases": ["torch", "pytorch framework"],
+      "description": "Machine learning framework based on the Torch library",
+      "importance": "High"
+    },
+    {
+      "id": "skill_llm",
+      "name": "Large Language Models",
+      "category": "AI/ML",
+      "aliases": ["llm", "rag", "langchain", "prompt engineering", "openai api", "gemini api"],
+      "description": "Generative AI and neural language models for text understanding and reasoning",
+      "importance": "High"
+    },
+    {
+      "id": "skill_problem_solving",
+      "name": "Problem Solving",
+      "category": "Soft Skills",
+      "aliases": ["analytical thinking", "critical thinking", "data structures & algorithms", "dsa"],
+      "description": "Ability to analyze complex issues and engineer pragmatic solutions",
+      "importance": "High"
+    },
+    {
+      "id": "skill_communication",
+      "name": "Technical Communication",
+      "category": "Soft Skills",
+      "aliases": ["collaboration", "teamwork", "written communication", "presentation"],
+      "description": "Clear articulation of technical designs and cooperative development",
+      "importance": "High"
+    },
+    {
+      "id": "skill_agile",
+      "name": "Agile / Scrum",
+      "category": "Methodology",
+      "aliases": ["scrum", "kanban", "sprint planning", "jira"],
+      "description": "Iterative software development lifecycle methodology",
+      "importance": "Medium"
+    }
+  ]
+}
