@@ -19,14 +19,14 @@ export function LogoMark({ className }: { className?: string }) {
 
 /**
  * Full CareerBridge AI logo with name and tagline.
- * Rendered on a light card because the wordmark uses dark navy text.
+ * The source image has a transparent background so it can sit on any surface.
  */
 export function Logo({ className, href = "/" }: { className?: string; href?: string }) {
   return (
     <Link
       href={href}
       className={cn(
-        "group inline-flex items-center rounded-xl bg-white px-1.5 py-1 shadow-sm ring-1 ring-white/10 focus-visible:outline-2",
+        "group inline-flex items-center rounded-xl px-1.5 py-1 shadow-sm ring-1 ring-white/10 focus-visible:outline-2",
         className
       )}
       aria-label="CareerBridge AI home"
