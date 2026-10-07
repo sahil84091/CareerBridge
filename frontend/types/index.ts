@@ -128,3 +128,45 @@ export interface DashboardData {
   recommended_opportunities: Opportunity[];
   recent_skills: UserSkillItem[];
 }
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface ParsedSkill {
+  name: string;
+  category?: string;
+  proficiency?: string;
+  [key: string]: unknown;
+}
+
+export interface ResumeParseOutput {
+  name?: string | null;
+  email?: string | null;
+  education: Record<string, unknown>[];
+  experience: Record<string, unknown>[];
+  skills: ParsedSkill[];
+  projects: Record<string, unknown>[];
+  certifications: string[];
+}
+
+export interface ResumeAnalysis {
+  resume_id: string;
+  filename: string;
+  parsed_data: ResumeParseOutput;
+  extracted_skills_count: number;
+  matched_canonical_skills: string[];
+}
+
+export interface CareerRecommendation {
+  role_id: string;
+  title: string;
+  category: string;
+  average_salary?: string;
+  match_score: number;
+  matched_skills: string[];
+  missing_count: number;
+  explanation: string;
+}
+
